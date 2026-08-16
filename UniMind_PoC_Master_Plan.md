@@ -1,480 +1,657 @@
 # UniMind: Master PoC Plan
 
-**Working document for Ahmed, Ziad, and Codex**  
-**Status:** Draft for discussion and execution  
+**Working source of truth for Ahmed, Ziad, and Codex**
+
+**Status:** Updated implementation plan
+
 **Last updated:** 16 August 2026
 
-## 1. Purpose of this document
+## 1. Purpose and authority
 
-This is the working source of truth for the UniMind proof of concept (PoC). It supplements the original Word blueprint and turns it into an execution plan that we can update together.
+This document defines the product, technical architecture, operational model, scope, quality gates, and delivery roadmap for the UniMind proof of concept (PoC). It is the active planning authority for the English version of the project.
 
-The PoC is intentionally substantial. It must prove that UniMind is useful, trustworthy, operable, and commercially testable for real students. It is not only a chat demo and it is not a full university launch.
+The PoC is not a disposable demo. It must be a complete, automated, production-shaped release that can serve real students at low cost. Moving from the PoC to a wider release must be achieved by increasing infrastructure capacity, provider limits, and operational budgets, not by replacing the application or redesigning its core data model.
 
-### 1.1 Change analysis from the previous plan
-
-| Previous plan assumption | Updated direction |
-| --- | --- |
-| Platform hierarchy ended at university faculty/subject/lecture | Add an education stage and generic program/curriculum-unit model so new faculties and Thanaweya Amma do not require a redesign. |
-| Students selected an enrolled subject | Students filter to a released cohort, then open an available typed curriculum unit shown as Module or Subject. |
-| Trusted founders/uploaders supplied content | Admins create cohort collection campaigns and invite restricted Batch Leaders to submit the complete material set. |
-| Technically clean trusted content could publish | Processing produces `READY`; Ahmed/Ziad separately publish units and unlock cohorts. |
-| Original files could remain in private archival storage | Raw files are temporary by default; durable Markdown/structured transcripts, locator sidecars, checksums, and deletion events replace permanent raw storage. |
-| Availability was mostly catalog/enrollment based | Availability is derived from membership + cohort unlock + unit publication + ready processed source + rights/edition. |
-| Faculty terminology was implicit | Program configuration provides curriculum-unit type and singular/plural UI labels. |
+The separate execution runbook translates this plan into exact implementation tasks, dependencies, tests, and exit evidence.
 
 ## 2. Product vision
 
-UniMind is a scalable educational platform whose first launch serves Human Medicine and Veterinary Medicine. The catalog, access model, content pipeline, and user interface must also support Pharmacy, Engineering, and other university faculties without a schema redesign. The longer-term catalog must be able to introduce a High School education stage, including Thanaweya Amma tracks and curricula, without pretending that a high-school track is a university faculty.
+UniMind is a highly scalable educational platform that converts approved study materials into a source-grounded AI learning environment.
 
-The current learning product is a bilingual academic tutor that turns cohort-specific study sources into cited explanations, summaries, flashcards, quizzes, and exam-oriented practice. It supports English, Egyptian Arabic, and a natural mixed style while preserving precise technical terminology.
+The first supported university programs are Human Medicine and Veterinary Medicine. The same architecture must later support Pharmacy, Engineering, other university faculties and programs, and High School education including Thanaweya Amma curricula and tracks.
 
-### Expansion model
+Expansion must be data-driven. Adding a faculty, institution, academic level, term, cohort, or curriculum unit must not require a new application architecture or hard-coded screens.
+
+### 2.1 Catalog hierarchy
 
 The durable hierarchy is:
 
-`Education stage -> Institution/system -> Program -> Academic level -> Term -> Cohort/curriculum edition -> Curriculum unit`
+`Education stage -> Institution or education system -> Program -> Academic level -> Term -> Cohort or curriculum edition -> Curriculum unit`
 
-- For university education, a program is normally presented as a Faculty.
-- For future High School education, a program can be a Track/Stream rather than a faculty.
-- A curriculum unit has a configurable type and display label. Human Medicine uses `MODULE`; most other faculties currently use `SUBJECT`.
-- The user interface reads these labels from configuration. It must not hard-code `Subject` or `Module` in shared screens.
+- **Education stage:** initially `UNIVERSITY`; later `HIGH_SCHOOL` and other stages.
+- **Institution or education system:** a university such as Zagazig University, or a future school/exam system.
+- **Program:** a university faculty or a future school track/stream.
+- **Academic level:** 1st Year, 2nd Year, 3rd Year, or another configured level.
+- **Term:** First Semester, Second Semester, or another configured academic period.
+- **Cohort or curriculum edition:** the exact batch and curriculum version whose sources and access are managed together.
+- **Curriculum unit:** the learning container a student opens. Human Medicine normally displays it as a `Module`; other faculties normally display it as a `Subject`.
 
-### Core promise to a student
+The interface must read the singular and plural curriculum-unit labels from program configuration. Shared screens must never hard-code `Module` or `Subject`.
 
-When a student asks about an unlocked curriculum unit, UniMind should:
+### 2.2 Core student promise
 
-- answer from the approved course sources;
-- show a page or timestamp citation for material claims;
-- state clearly when evidence is insufficient;
-- show source conflicts instead of silently selecting one answer;
-- distinguish course material from optional external information;
-- help the student revise using summaries, flashcards, and MCQs.
+When a student opens an available Module or Subject, UniMind provides:
 
-## 3. PoC definition
+- A dedicated chat that answers only from that unit's approved uploaded material.
+- Transparent refusal to invent an answer when the material is insufficient.
+- Explicit presentation of contradictory source statements.
+- Access to professor voice-note insights and exam hints when those files are part of the approved material pool.
+- A Studio for generating source-grounded summaries, practice questions, study guides, flashcards, and quizzes.
+- English, Egyptian Arabic, and natural mixed-language responses while preserving technical terminology.
 
-### 3.1 What “substantial PoC” means
+## 3. PoC objectives and non-negotiable philosophy
 
-The PoC will validate the complete learning loop, not just one technical component:
+### 3.1 Lowest practical cost with useful performance
 
-1. Admins create a target cohort and collection campaign for a specific institution/program/level/term.
-2. A restricted Batch Leader submits the cohort's permitted books, PDFs, recordings, exams, and related study materials.
-3. The system validates, extracts/transcribes, optimizes, indexes, and quality-checks those materials.
-4. The student asks a bilingual question and receives a cited answer.
-5. The student generates study material and completes a quiz.
-6. The system records quality feedback, usage, latency, and cost.
-7. Ahmed and Ziad decide exactly which processed curriculum units and cohorts are visible through the admin dashboard.
+The PoC must run on the smallest practical infrastructure and provider plans while maintaining a usable experience. Cost efficiency is an architecture requirement, not a later optimization.
 
-### 3.2 Two-cohort pilot
+The system must:
 
-The completed PoC includes two independent curriculum tracks:
+- Avoid paid AI calls during ordinary frontend and database development by using fixtures and mocks.
+- Cache safe reusable results, embeddings, and generated artifacts where correctness and permissions allow.
+- Batch embedding and content-processing work.
+- Enforce per-user and system-wide quotas, concurrency controls, input limits, and output limits.
+- Record usage and calculated cost for every generation, embedding, transcription, and conversion action.
+- Degrade predictably when a provider is slow or unavailable instead of losing jobs or corrupting state.
+- Pass the defined 100-student workload on the selected minimum-cost deployment before the PoC is accepted.
 
-| Cohort | Program | Curriculum display | Build sequence | Why it matters |
+### 3.2 Production-shaped, non-throwaway implementation
+
+The PoC codebase is the first production version. It must use:
+
+- Versioned database migrations.
+- Strict authorization and Row Level Security.
+- Durable, idempotent background jobs.
+- Provider adapters so vendors can be changed without rewriting product logic.
+- Environment separation for development, preview, and beta production.
+- Automated tests, deployment checks, telemetry, backups, and incident controls.
+- Stateless web instances and horizontally scalable workers where possible.
+- Configuration-driven catalog and terminology.
+
+No critical operation may depend on a founder's laptop, a manually executed script, an unversioned database edit, or an undocumented sequence. Scaling after the PoC should primarily mean increasing compute, queue concurrency, storage, database capacity, model limits, and monitoring retention.
+
+### 3.3 Fully automated normal operation
+
+The normal path from accepted upload to student-ready knowledge must require zero manual intervention:
+
+1. A Batch Leader submits a permitted source to an assigned campaign.
+2. The system validates, stores temporarily, extracts or transcribes, verifies, normalizes, chunks, embeds, and indexes it.
+3. The system deletes raw audio and raw document files after the verified processed representation is durable.
+4. The system marks the source ready or isolates it with a machine-readable failure reason.
+5. Published and unlocked content becomes available according to admin policy.
+6. Retries, timeout recovery, stale-job recovery, usage accounting, cost limits, and routine notifications run automatically.
+
+Ahmed and Ziad retain explicit governance controls: they create campaigns, configure the catalog, publish or hide curriculum units, unlock or lock cohorts, manage rights, and intervene in exceptional failures. These deliberate governance decisions are not routine processing steps and do not weaken the zero-manual-operation requirement.
+
+The PoC will be a free, controlled beta. Manual receipt verification and manual payment approval are removed from the PoC. Commercial payments are deferred until an automated payment provider and automated reconciliation flow are selected.
+
+### 3.4 Complete learning loop
+
+The PoC must prove the complete path:
+
+1. Admin targets a cohort and assigns a Batch Leader.
+2. The Batch Leader supplies books, PDFs, recordings, exams, professor notes, and related permitted sources.
+3. The platform automatically creates a verified, optimized knowledge pool.
+4. Admin publishes the unit and unlocks the cohort.
+5. Student opens the Module or Subject and asks questions in its dedicated chat.
+6. The strict RAG system produces a grounded answer, an unavailable-information response, or an explicit conflict response.
+7. Student uses the Studio to create study artifacts from the same pool.
+8. Student completes a quiz, reviews explanations, and reports problems.
+9. The platform measures quality, load, latency, reliability, storage reduction, and cost.
+
+## 4. Pilot definition
+
+### 4.1 Two-track PoC
+
+| Pilot | Program | UI term | Build order | Architectural proof |
 | --- | --- | --- | --- | --- |
-| Cohort A | Human Medicine | Modules | Build and validate first | Proves cohort intake, module display, source processing, and the complete learning loop. |
-| Cohort B | Veterinary Medicine | Subjects unless its institution configures otherwise | Add before PoC completion | Proves that the catalog, availability, retrieval, and UI are program-configurable. |
+| Cohort A | Human Medicine | Modules | First | Complete ingestion, professor-audio processing, strict RAG chat, Studio, and release workflow. |
+| Cohort B | Veterinary Medicine | Subjects unless configured otherwise | Second | Program-configurable terminology, isolation, reuse of the same pipeline, and removal of Human-Medicine assumptions. |
 
-We will not develop both cohorts at the same time in the first weeks. We will stabilize the pipeline and tutor experience on Cohort A, then bring Cohort B through the same quality gates.
+Cohort A is stabilized first. Cohort B must pass the same pipeline, authorization, retrieval, safety, Studio, automation, and load gates before the PoC is complete.
 
-### 3.3 Target pilot corpus
+### 4.2 Target source corpus
 
-For each track, target:
+For each pilot cohort, target:
 
-- 8-12 lectures or modules.
-- 15-25 PDFs, slide decks, or structured documents.
-- 3-5 hours of representative lecture audio.
+- 8-12 Modules or Subjects represented in the catalog.
+- 15-25 PDFs, books, slide decks, or structured documents.
+- 3-5 hours of lecture or professor voice-note audio.
 - At least one permitted past-exam collection or question bank where available.
-- 100-150 tutor gold-evaluation cases.
-- 30-50 MCQ-generation evaluation cases.
-- English, Arabic, and mixed-language examples.
-- Insufficient-evidence, source-conflict, and prompt-injection test cases.
+- Professor hints or exam-oriented statements where available and permitted.
+- 100-150 tutor evaluation cases.
+- 30-50 generated-artifact and MCQ evaluation cases.
+- English, Arabic, and mixed-language cases.
+- Missing-information, contradiction, prompt-injection, educational-medical-case, and real-patient boundary cases.
 
-Across the PoC, this is approximately 16-24 lectures, 30-50 source files, 6-10 audio hours, 200-300 tutor evaluation cases, and 60-100 MCQ evaluation cases.
+Across the PoC, the expected test corpus is approximately 30-50 document sources, 6-10 audio hours, 200-300 tutor cases, and 60-100 study-artifact cases.
 
-### 3.4 Beta size
+### 4.3 Student capacity target
 
-Target a controlled private beta of 30-60 active students. Do not define success from registrations alone; the important measure is whether students complete useful study sessions and come back.
+The PoC is designed for at least 100 authenticated students on minimal practical resources.
 
-## 4. Scope boundaries
+Validation must include:
 
-### Included in the PoC
+- 100 provisioned student accounts.
+- A realistic mix of logins, catalog reads, subject-chat requests, Studio jobs, quiz attempts, and feedback events.
+- Burst testing for simultaneous chat submissions and artifact generation.
+- Background ingestion occurring while students use the learning product.
+- No cross-user, cross-cohort, or cross-unit data leakage.
+- No duplicate charge, usage, job, artifact, or message caused by retries.
+- Measured p50, p95, error rate, queue delay, database load, provider cost, and infrastructure cost.
 
-- Email/password accounts and verified email.
-- Education-stage-ready catalog: institution/system, program/faculty, academic level, term, cohort/curriculum edition, and typed curriculum units.
-- Configurable Module versus Subject terminology driven by program/curriculum data.
-- Cohort enrollment, cohort unlock, unit publication, and strict access control.
-- Batch Leader invitation, restricted collection campaign, and submission tracking.
-- English, Egyptian Arabic, and mixed-language tutoring.
-- Books, PDFs, scanned slides, and lecture-audio ingestion.
-- OCR and transcription only where needed.
-- Verified conversion to optimized structured text and automatic raw-file deletion after quality validation.
-- Curriculum-unit/cohort-filtered hybrid retrieval and citations.
-- Evidence sufficiency, conflicts, and student reporting.
-- Summaries, flashcards, MCQs, quizzes, and basic weak-topic signals.
-- Admin content operations, quality review, feedback review, and cost dashboard.
-- Daily free allowance and an append-only credit ledger.
-- Test/manual payment order workflow with Telegram used for receipts and communication.
-- Google Drive inbox and local workflow automation for trusted content.
+## 5. Scope boundaries
 
-### Explicitly deferred
+### 5.1 Included in the PoC
+
+- Responsive web application with English, Egyptian Arabic, mixed-language, RTL, and LTR behavior.
+- Email/password accounts with verified email and role-based access.
+- Education-stage-ready catalog and dynamic Module/Subject terminology.
+- Cohort membership, cohort release, curriculum-unit publication, and derived availability.
+- Admin dashboard for catalog, campaigns, source state, quality, publication, unlock, failures, cost, and usage.
+- Restricted Batch Leader invitations and campaign-scoped submissions.
+- PDF, book, scanned-slide, and audio ingestion.
+- Native text extraction, OCR where necessary, full audio transcription, and professor-hint preservation.
+- Durable Markdown or equivalent compact processed text plus structured metadata and locators.
+- Automatic verified deletion of raw audio and raw document objects.
+- A unified source pool per cohort and curriculum unit.
+- Strict RAG retrieval and answer generation with no outside knowledge source.
+- Missing-information and contradiction behavior.
+- Subject-specific chat.
+- NotebookLM-style Studio for summaries, study guides, practice questions, flashcards, and quizzes.
+- Student feedback and reported-answer workflow.
+- Automated quotas, usage metering, cost controls, retries, recovery, and operational alerts.
+- Load testing for the 100-student target.
+- Future-safe ingestion contracts for video, without implementing video in this PoC.
+
+### 5.2 Explicitly deferred
 
 - Native Android or iOS applications.
-- Full public launch across multiple universities.
-- Student private uploads and NotebookLM-like personal workspaces.
-- Patient-specific diagnosis or treatment advice.
-- Fully autonomous publication of untrusted uploads.
-- Automatic card/wallet settlement.
+- Public launch across many institutions.
+- Student-private personal notebooks or personal file uploads.
+- Video ingestion and processing.
+- Real-money charging during the PoC.
+- Manual receipt approval or manual credit sales.
 - Professor access to individual student chats.
-- Building or hosting a frontier model.
+- Live diagnosis or treatment of an identifiable real patient.
+- Automatic publication of untrusted material without an admin-defined release policy.
+- Building or self-hosting a frontier foundation model.
 
-## 5. Product rules that cannot be compromised
+## 6. Product and AI rules
 
-1. **Cohort and unit isolation:** a student must never retrieve content from another cohort, program, institution, or curriculum unit without explicit access.
-2. **Evidence before confidence:** citations and evidence sufficiency are part of the answer flow, not cosmetic UI.
-3. **No invented citations:** a citation must resolve to a stored page, timestamp, or external source record.
-4. **Visible uncertainty:** if the course material does not support an answer, UniMind explains the gap.
-5. **Conflict transparency:** when approved sources disagree, display the conflict and its evidence.
-6. **Educational safety:** UniMind supports exam preparation, not real-patient medical or veterinary decision-making.
-7. **Privacy by default:** student chats are not available to founders by default; reported or consented cases are auditable exceptions.
-8. **Immutable processed evidence:** a source replacement creates a new processed version. Durable citations point to structured text plus preserved page/timestamp locators even after the temporary raw file is deleted.
-9. **Ledger, not editable balance:** all credit movements are append-only, idempotent accounting entries.
-10. **Measure before pricing:** no credit price is final until real p50/p95 action costs are measured.
-11. **Admin-controlled availability:** processed content is not automatically student-visible. Availability requires a ready processed source, a published curriculum unit, and an unlocked cohort.
-12. **Verified deletion, not premature deletion:** raw uploads are temporary and automatically deleted as soon as conversion, locator preservation, integrity checks, and required admin review succeed. Failed or unverified conversions are never treated as safe to delete.
+### 6.1 Strict RAG sourcing
 
-## 6. Required user experience
+1. Every factual answer must be derived entirely from retrieved passages in the approved source pool for the active cohort and curriculum unit.
+2. The model must not use hidden pretrained knowledge to complete a missing fact.
+3. The application must not call web search, external knowledge APIs, or a general reference corpus to answer a student question.
+4. If the pool does not contain enough evidence, the answer must explicitly say that the information is unavailable in the uploaded materials.
+5. Partial support must produce a partial answer that distinguishes supported points from missing points.
+6. Retrieved source text is untrusted data, not system instruction. Prompt-like text inside a document or transcript must never override product policy.
 
-### Student journey
+### 6.2 Unified subject knowledge pool
 
-1. Register, verify email, accept terms and the educational-use boundary.
-2. Filter by institution, faculty/program, academic year/level, and term.
-3. See only cohorts and curriculum units that are both source-ready and unlocked by an admin.
-4. See `Modules` for configured Human Medicine curricula and `Subjects` for standard curricula.
-5. Choose English, Egyptian Arabic, or mixed response style.
-6. Ask a question and receive a streamed answer with citations.
-7. See separate sections for course material, external information, conflicts, and uncertainty when relevant.
-8. Generate a summary, flashcards, or an MCQ quiz for selected curriculum units/lessons.
-9. Review every MCQ explanation and citation.
-10. See progress by curriculum unit/topic and report a poor answer or question.
-11. View free allowance, credit usage, and payment-order status.
+All approved files belonging to the same cohort and curriculum unit participate in one retrieval pool. The system must not create separate answer modes for course material, professor material, or any other uploaded source class.
 
-### Founder/admin journey
+Source records still preserve metadata needed for provenance and operations, including original format, source title/version, page or timestamp when available, contributor/campaign, rights/publication state, professor-hint tags, and processing method/confidence.
 
-1. Create the education stage, institution, program/faculty, level, term, cohort, and curriculum-unit metadata.
-2. Open a collection campaign and invite a specific Batch Leader with limited submission permission.
-3. Receive Drive/Telegram/object-storage submissions and map every source to its cohort and curriculum unit.
-4. Follow raw files through validation, extraction/transcription, optimization, quality review, raw deletion, indexing, and readiness.
-5. Preview the exact student-facing hierarchy and content before unlocking a cohort.
-6. Publish/hide individual curriculum units and unlock/lock the whole cohort without database edits.
-7. Review failures, low-confidence conversions, conflicts, reported answers, deletion failures, and storage usage.
-8. Activate/deactivate processed source versions without breaking historical citations.
-9. Run evaluation sets before provider, prompt, retrieval, or publication-rule changes go live.
-10. Monitor quality, latency, cost, student feedback, and operational failures.
-11. Review manual payment evidence and approve/reject orders through an audited transaction.
+Source-format metadata may be shown to students, but it must not fragment the retrieval experience.
 
-### Batch Leader journey
+### 6.3 Provenance without mandatory exact page citations
 
-1. Receive an expiring invitation tied to one collection campaign and cohort.
-2. View the requested material checklist and submission rules.
-3. Submit permitted files/Drive references plus required source metadata.
+Exact page or timestamp citations are preferred when reliable but are not required for every student-facing answer.
+
+The system must retain 100% internal provenance for answer evidence:
+
+- Each retrieved segment has a stable segment ID and source-version ID.
+- Each answer records the evidence segment IDs used for generation.
+- Source title and format can be displayed to the student.
+- Page or timestamp is displayed when the conversion produced a reliable locator.
+- The model cannot invent page numbers, timestamps, URLs, source titles, or quotations.
+
+The core quality requirement is zero unsupported factual claims in accepted evaluation answers, not a cosmetic citation count.
+
+### 6.4 Conflicting sources
+
+When relevant approved sources disagree, UniMind must detect the disagreement, state clearly that the uploaded materials conflict, present each supported position separately, identify the contributing source when available, and avoid silently choosing one version unless an approved source explicitly resolves it.
+
+### 6.5 Professor insights
+
+Professor recordings and voice notes enter the same source pool as other approved material.
+
+- The full recording is transcribed before the raw audio is deleted.
+- Timestamps are retained when available.
+- Exam hints, emphasized points, exclusions, corrections, and likely-question statements are tagged during processing.
+- The tag improves retrieval and presentation but does not make the statement objectively true.
+- Answers label a professor hint as a professor hint rather than presenting it as guaranteed exam content.
+- Conflicts between a professor statement and another source follow the normal conflict policy.
+
+### 6.6 Educational medical and veterinary safety
+
+The subject chat is an academic learning environment. Medical and veterinary case scenarios are expected and should normally be answered from the uploaded materials. The system must not refuse merely because a prompt mentions symptoms, diagnosis, drugs, procedures, doses, prognosis, or treatment in an educational case.
+
+- **Educational case:** answer normally from the source pool.
+- **Ambiguous case inside a Module/Subject:** prefer an educational interpretation and answer from the source pool.
+- **Explicit real-patient request:** do not act as the treating professional; provide a concise boundary and, when appropriate, recommend qualified or emergency care.
+- **Patient-identifying information:** warn the user not to share it and avoid retaining it beyond the documented policy.
+
+Safety behavior must not introduce outside medical knowledge into a strict-RAG answer.
+
+### 6.7 Access, privacy, and governance
+
+- A student can retrieve only sources authorized for the selected cohort and curriculum unit.
+- Student chats are not visible to founders by default.
+- Reported or explicitly consented exchanges may be retained for a defined review period.
+- Source replacements create immutable new processed versions.
+- Raw deletion requires verified durable processed output and an append-only deletion event.
+- Availability requires source ready, unit published, cohort unlocked, valid rights, and valid membership.
+- Usage accounting is append-only and idempotent even while the PoC is free.
+
+## 7. Required user experience
+
+### 7.1 Student journey
+
+1. Register, verify email, and accept terms, privacy rules, and the educational-use boundary.
+2. Select education stage, institution, Faculty/program, Academic Year/level, and Term.
+3. See only released cohorts and source-ready published Modules or Subjects.
+4. Open one Module or Subject and arrive at that unit's dedicated chat and Studio.
+5. Ask in English, Egyptian Arabic, or a mixed style.
+6. Receive a streamed strict-RAG answer, unavailable-information response, or conflict response.
+7. See source titles/formats and reliable locators when available.
+8. Generate a summary, study guide, practice questions, flashcards, revision pack, or quiz from the same pool.
+9. Review quiz answers and grounded explanations.
+10. Report a poor answer, source problem, or conflict.
+11. See usage allowance and capacity states without founder assistance.
+
+### 7.2 Admin journey for Ahmed and Ziad
+
+1. Configure the catalog and terminology.
+2. Create a collection campaign for an exact cohort/unit scope.
+3. Invite a Batch Leader with expiring, campaign-scoped permission.
+4. Monitor each source from receipt through processing, deletion, indexing, readiness, or failure isolation.
+5. Preview the exact student experience.
+6. Publish/hide Modules or Subjects and unlock/lock cohorts.
+7. Activate/deactivate source versions without deleting historical provenance.
+8. Inspect automated quality reports, conflicts, failures, storage reduction, usage, latency, and cost.
+9. Rerun, quarantine, or reject an exceptional source through audited actions.
+10. Run frozen regressions before retrieval, prompt, provider, or processing changes go live.
+
+Admins do not manually perform routine extraction, transcription, deletion, chunking, embedding, retry, or reconciliation.
+
+### 7.3 Batch Leader journey
+
+1. Receive an expiring invitation tied to one campaign and cohort.
+2. View required source types, naming guidance, rights declarations, and status.
+3. Submit files or approved storage references with required metadata.
 4. Track received, processing, needs-information, accepted, rejected, and completed states.
-5. Never receive admin privileges, student-chat access, provider controls, publication controls, or access to another cohort.
+5. Never receive publication, unlock, student-chat, provider, cost-control, or cross-cohort access.
 
-## 7. Technical product architecture
+## 8. Technical architecture
 
-### Application
+### 8.1 Application architecture
 
-- **Web app:** Next.js with TypeScript.
-- **UI:** responsive web interface with proper right-to-left support for Arabic and left-to-right medical terminology.
-- **Authentication and database:** Supabase Auth and PostgreSQL.
-- **Authorization:** Row Level Security, server-side authorization, and protected database functions.
-- **Deployment:** preview environment for development and separate beta-production environment.
-- **Heavy processing:** durable background worker/job system; large uploads and multi-hour transcription do not execute inside a short-lived web request.
-- **Storage:** provider-agnostic object-storage adapter. Google Drive can be an intake source, but database metadata and job state remain authoritative.
+- **Web application:** Next.js with TypeScript.
+- **Read paths:** authenticated Server Components or server-only data services.
+- **Mutations:** Server Actions for normal mutations; Route Handlers for streaming chat, uploads, provider callbacks, and webhooks.
+- **Runtime:** Node.js for provider SDKs, streaming, and processing interfaces.
+- **Database/Auth:** Supabase Auth and PostgreSQL.
+- **Authorization:** Row Level Security on exposed tables, explicit grants, server-side checks, and narrowly scoped functions.
+- **Storage:** provider-agnostic private object storage with temporary-raw and durable-processed namespaces.
+- **Background processing:** durable queue and independently scalable workers.
+- **Deployment:** separate development, preview, and beta-production environments.
+- **Observability:** structured logs, correlation IDs, job events, provider usage, health checks, error reporting, and cost dashboards.
 
-### Catalog and availability architecture
+The web tier must remain stateless. Long extraction, transcription, embedding, and artifact generation must not rely on a short-lived browser or web request.
 
-- `education_stages` distinguishes `UNIVERSITY` from the future `HIGH_SCHOOL` stage.
-- `institutions` belongs to an education stage.
-- `programs` represents a university faculty or a high-school track and stores its UI terminology configuration.
-- `academic_levels` represents 3rd Year and similar levels.
-- `terms` represents First/Second Semester or another configured term system.
-- `cohorts` binds institution, program, level, term, and curriculum edition/batch.
-- `curriculum_units` belongs to a cohort and has `unit_type = MODULE | SUBJECT | COURSE | TOPIC` plus configurable singular/plural display labels.
-- `cohort_memberships` authorizes students; `cohort_releases` stores admin lock/unlock state.
-- Student-visible availability is derived, not manually duplicated: cohort released AND curriculum unit published AND at least one processed source version ready and published.
+### 8.2 Availability model
 
-### Database schema delta
+A curriculum unit is visible only when:
 
-| Previous/current concept | Required schema adjustment |
+`authenticated membership AND cohort unlocked AND unit published AND at least one active READY source version AND valid rights AND matching curriculum edition`
+
+This result must be derived in a security-aware query or security-invoker view. Do not store a user-editable `is_available` Boolean that can drift from its source conditions.
+
+### 8.3 Required database domains
+
+| Domain | Required records and purpose |
 | --- | --- |
-| `faculties` | Replace/generalize with `programs`, including `program_type`, `default_unit_type`, `unit_label_singular`, and `unit_label_plural`. A university faculty is one program type; a future High School track is another. |
-| `study_years` | Generalize to `academic_levels` with program, ordered position, display label, and optional stage-specific metadata. |
-| `semesters` | Generalize to `terms`, retaining program/level scope and configurable display/order. |
-| `subjects` + `lectures` | Replace with hierarchical `curriculum_units` using `unit_type`, optional `parent_unit_id`, cohort, title, order, and publication state. |
-| `subject_enrollments` | Replace with `cohort_memberships`; unit availability is inherited from the cohort plus publication/readiness rules. |
-| uploader approval only | Add `batch_leader_assignments`, `collection_campaigns`, and `source_submissions` with campaign-scoped permissions/status. |
-| source asset private archive | Add temporary raw lifecycle fields: storage provider/key, hash, received time, `delete_after`, `raw_status`, hold reason, and last deletion error. |
-| page/transcript rows tied to original | Add durable `processed_documents` and `source_locators` linking Markdown/JSON offsets to original page numbers/timestamps after raw deletion. |
-| publication on source processing | Separate `source_versions.processing_status`, `curriculum_units.publication_status`, and `cohort_releases.release_status`. |
-| no deletion ledger | Add append-only `raw_deletion_events` with request/result/verification/retry fields and an admin storage dashboard. |
+| Identity | Profiles, roles, account state, consent/terms versions, retention preference. |
+| Catalog | Education stages, institutions, programs, levels, terms, cohorts, curriculum units, terminology. |
+| Access/release | Memberships, cohort releases, unit publication events, admin audit events. |
+| Collection | Batch Leader assignments, campaigns, requested-material items, submissions, declarations. |
+| Source lifecycle | Source assets, immutable versions, raw-object state, hashes, rights, processing/activation state. |
+| Processing | Jobs, attempts, leases, dependencies, provider calls, quality reports, processed documents, locators, deletion events. |
+| Knowledge pool | Segments, source metadata, professor-insight tags, embeddings, embedding versions, conflict annotations. |
+| Tutor | Subject-scoped sessions, messages, answer evidence, insufficiency/conflict result, feedback. |
+| Studio | Artifact requests/versions, evidence links, validation, summaries, guides, questions, flashcards, quizzes. |
+| Operations | Allowance ledger, reservations, usage/cost events, rate limits, flags, incidents, audit. |
 
-Do not duplicate availability into a writable Boolean. Implement a security-invoker view or caller-scoped query that returns a unit only when the membership, release, publication, processed-source, rights, and edition predicates all pass.
+### 8.4 Key schema rules
 
-### Tutor pipeline
+- `programs` stores program type, default unit type, and localized singular/plural labels.
+- `curriculum_units` stores type, optional parent, cohort, order, and publication state.
+- `source_versions` are immutable after acceptance except for controlled activation and status transitions.
+- Every processed document, locator, segment, and embedding belongs to exactly one source version.
+- Every segment carries join-verifiable cohort, curriculum-unit, and curriculum-edition scope.
+- Source type is metadata, not a separate retrieval database.
+- Professor hints are structured segment tags, not a separate answer system.
+- Every answer and Studio artifact links to the exact evidence segments used.
+- No answer may claim `SUPPORTED` unless evidence links exist and validation passes.
+- Jobs use unique idempotency keys and explicit state transitions.
+- Usage reservations and settlements are transactions, not editable counters.
+- Raw deletion is append-only audited and verified against storage.
+- Service-role credentials are server/worker secrets and never reach the browser.
 
-1. Authenticate the student and validate cohort membership/release plus curriculum-unit availability.
-2. Enforce rate limits and reserve an estimated allowance/credit amount.
-3. Normalize the retrieval query while retaining the student's visible wording.
-4. Run cohort- and curriculum-unit-filtered keyword/full-text and vector search in parallel.
-5. Merge, deduplicate, rerank, and assess evidence sufficiency.
-6. Build a compact evidence packet with stable citation IDs.
-7. Generate a streamed answer under strict course-evidence rules.
-8. Validate citation IDs, claim support, cohort/unit scope, and policy output.
-9. Settle actual usage, release unused reservation, and store data according to retention choice.
+### 8.5 Content processing pipeline
 
-### Content pipeline
+1. Validate campaign, assignment, authority, rights, type, size, checksum, and duplicate status.
+2. Create source/version and durable processing workflow in one controlled operation.
+3. Store raw data privately and temporarily with a deletion deadline.
+4. Scan and inspect the file.
+5. Extract page-aware native text from text PDFs/books.
+6. Run OCR only on scanned or low-text pages.
+7. Transcribe complete audio with timestamps, language, terminology support, and confidence.
+8. Normalize to compact Markdown or equivalent plus structured JSON metadata/locators.
+9. Detect headings, tables, formulas, diagrams, professor hints, corrections, exclusions, and exam emphasis.
+10. Verify coverage, readability, checksums, locator integrity, and representative terminology.
+11. Persist processed output and quality report.
+12. Delete the raw object automatically, verify absence, and append the deletion event.
+13. Chunk by structure and semantic boundaries.
+14. Generate embeddings in batches using versioned configuration.
+15. Index all segments into the unit's unified pool.
+16. Run duplicate, leakage, empty-segment, prompt-injection, and retrieval smoke tests.
+17. Mark the source `READY`, or isolate it as `FAILED`/`NEEDS_REVIEW` with diagnostics and retry data.
 
-1. Admin creates a collection campaign and the Batch Leader submits a raw file/reference with metadata and an idempotency key.
-2. Validate campaign scope, uploader authority, rights, file type, size, malware risk, and duplicate hash.
-3. Store the raw object in a private temporary location and set a deletion deadline/status.
-4. For PDFs/books, extract native text page by page, OCR low-text pages, and create normalized Markdown plus a structured locator sidecar. Preserve essential tables, formulas, and diagram descriptions; do not discard meaning merely to save space.
-5. For audio, transcribe the entire recording with timestamps, confidence, language mix, and terminology support; create compressed Markdown/JSON transcript output.
-6. Validate conversion coverage, locators, checksums, critical terminology samples, and processed-object readability.
-7. After required checks/admin review, delete the raw object through the storage provider API, verify absence, and append a deletion audit event. A failed deletion remains visible and retryable.
-8. Chunk the durable processed text by headings and semantic units.
-9. Create versioned embeddings in one defined embedding space.
-10. Run final checks for coverage, duplicates, chunk quality, citation mapping, and raw-deletion status.
-11. Mark the processed source `READY`; an admin still controls unit publication and cohort unlock.
+A raw file must not be deleted before verified processed output exists. A failed deletion retries automatically and remains visible as a storage-policy violation.
 
-## 8. Workstreams and deliverables
+### 8.6 Subject-chat RAG pipeline
+
+1. Authenticate the student and validate membership, release, publication, source readiness, rights, and quota.
+2. Bind the request server-side to one cohort and Module/Subject.
+3. Classify educational context, explicit real-patient risk, language, and request size.
+4. Normalize the query while retaining the visible wording.
+5. Run full-text and vector retrieval concurrently inside the unified subject pool.
+6. Filter before ranking by cohort, unit, edition, active source version, publication, and permission.
+7. Merge, deduplicate, rerank, and diversify results.
+8. Classify evidence as full, partial, unavailable, or conflicting.
+9. For unavailable evidence, return the unavailable-information contract without hidden-knowledge generation.
+10. For conflict, construct a packet containing every supported position.
+11. Otherwise create a compact evidence packet with stable segment IDs and source metadata.
+12. Generate and stream under strict-RAG and safety policy.
+13. Post-validate factual claims, evidence use, scope, conflict handling, and invented source/locator text.
+14. If validation fails, return a grounded fallback or unavailable response, never the invalid draft.
+15. Store according to retention rules, link retained output to evidence, settle usage, and release unused reservation.
+
+There is no web-search branch in this pipeline.
+
+### 8.7 Studio architecture
+
+The Studio is attached to the selected Module/Subject and uses exactly the same authorized unified source pool and strict evidence rules as chat.
+
+PoC artifact types are structured summary, study guide, practice questions, flashcards, MCQ quiz, and topic-focused revision pack.
+
+Every request stores cohort/unit scope, source-version scope, artifact type, language, depth, topic/size parameters, policy/model version, evidence links, validation result, failure reason, and a safe reuse key. Artifacts must expose missing areas and conflicts. Unsupported questions, answers, explanations, or summary claims are rejected or regenerated before display.
+
+### 8.8 Automation and reliability
+
+- PostgreSQL durable job records are workflow authority.
+- Queue delivery may occur more than once; each step is idempotent.
+- Workers use leases/heartbeats so abandoned work is recovered.
+- Retries use bounded exponential backoff and classify retryable versus terminal failures.
+- Failed jobs are inspectable and replayable after correction.
+- Scheduled reconciliation finds stale jobs, missing embeddings, failed deletions, unsettled reservations, and inconsistent READY states.
+- Provider rate limits create controlled queue delay, not data loss.
+- Circuit breakers and flags can disable a provider or expensive artifact type.
+- No automation engine stores unique business state absent from PostgreSQL.
+- If n8n is used, it must be always-on/hosted, perform orchestration/notification only, call workers by job ID, and never depend on a founder computer.
+
+### 8.9 Scale path after PoC
+
+Scaling must use capacity/configuration changes: increase stateless web instances, worker concurrency, PostgreSQL compute/connections/storage, provider quotas, queue/storage capacity, caching, and telemetry retention. A larger compatible vector service may be added behind the retrieval adapter only if measurements justify it. New programs enter through catalog data and the existing pipeline.
+
+## 9. Workstreams and deliverables
 
 | Workstream | PoC deliverables |
 | --- | --- |
-| Product and UX | Stage-aware filters, dynamic Module/Subject labels, cohort dashboard, chat, study tools, quizzes, Arabic/English support, feedback flow. |
-| Identity and access | Authentication, profiles, admin/Batch Leader/student roles, cohort membership, RLS tests, admin protection. |
-| Catalog and release control | Education stages, institutions, programs, levels, terms, cohorts, typed curriculum units, publication and unlock controls. |
-| Content operations | Collection campaigns, submissions, optimized processed versions, permissions, jobs, deletion audit, quality reports, review queue. |
-| Retrieval and tutor | Hybrid search, citations, evidence sufficiency, conflict handling, bilingual behavior, external-search flag. |
-| Study tools | Summaries, flashcards, original questions, generated MCQs, quiz sessions, progress signals. |
-| Credits and payments | Allowance, ledger, reservations, usage events, test payment orders, Telegram receipt linking. |
-| Automation | Drive inbox, Telegram webhook, local n8n orchestration, retries, duplicate protection. |
-| Quality and safety | Gold datasets, regression runner, prompt-injection tests, safety boundaries, reporting workflow. |
-| Operations | CI, migrations, monitoring, incident runbooks, backups/restore rehearsal before paid operation. |
+| Product/UX | Filters, dynamic terminology, subject workspace, chat, Studio, quiz/review, feedback, bilingual UI. |
+| Identity/security | Auth, roles, membership, consent, RLS, grants, authorization tests, audit. |
+| Catalog/release | Generic hierarchy, cohorts, units, publication, unlock, derived availability, admin preview. |
+| Collection | Campaigns, Batch Leader assignments, requested-material lists, submissions, status communication. |
+| Processing/storage | PDF/OCR/audio conversion, compact outputs, professor hints, jobs, raw deletion, storage reports. |
+| Retrieval/RAG | Unified pool, hybrid retrieval, strict sourcing, insufficiency, conflicts, internal provenance. |
+| Studio/quiz | Summaries, guides, questions, flashcards, MCQs, validation, quiz state. |
+| Automation | Queue, workers, retries, leases, reconciliation, notifications, failure isolation. |
+| Cost/performance | Quotas, batching, caches, usage ledger, benchmarks, 100-student load test. |
+| Quality/safety | Gold datasets, grounding, prompt injection, educational-case policy, reports. |
+| Operations | CI/CD, migrations, monitoring, alerts, backups, restore test, incident runbooks. |
 
-## 9. Delivery roadmap
+## 10. Delivery roadmap
 
-### Phase 0 — Confirm pilot cohorts, leaders, and retention policy
+### Phase 0: Pilot and operating constraints
 
 **Estimated effort:** 1 week
 
-Deliverables:
+- Select exact Human Medicine and Veterinary Medicine cohorts and unit lists.
+- Select Batch Leaders and inventory sources, rights, sizes, audio, and professor hints.
+- Approve temporary-raw retention/deletion, free-beta quotas, total/weekly spend, and 100-student workload.
+- Create frozen tutor, conflict, insufficiency, medical-case, and Studio evaluation templates.
+- Approve non-throwaway architecture constraints.
 
-- Select the Human Medicine and Veterinary Medicine pilot cohorts and their institution/program/level/term paths.
-- Configure whether each pilot displays Modules or Subjects and define its exact curriculum units.
-- Identify/contact the target Batch Leaders and define collection campaigns.
-- Record content permissions, provider-processing permissions, and commercial-use permissions.
-- Approve the raw-file policy: temporary storage, validation requirements, deletion deadline, exceptions/legal hold, and deletion audit.
-- Recruit at least 10 committed testers before heavy build work; target 30-60 eventual active beta students.
-- Approve a maximum test spend and confirm a viable API billing path.
-- Create the tutor and MCQ evaluation-set template.
-- Record every unresolved decision in the decision log below.
+Exit gate: cohorts, source paths, rights, deletion rules, cost caps, evaluation ownership, and load profile are documented.
 
-Exit gate: both cohorts have a viable Batch Leader/source path, configured curriculum structure, permissions, reviewer, tester pool, deletion policy, and cost cap.
-
-### Phase 1 — Engineering foundation
+### Phase 1: Production-shaped foundation
 
 **Estimated effort:** 2 weeks
 
-Deliverables:
+- Next.js/TypeScript repository with lint, types, tests, CI, and environment validation.
+- Development, preview, and beta environments.
+- Versioned Supabase migrations, backups, auth, roles, audit, catalog, memberships, release/publication, and RLS.
+- Bilingual shell, subject workspace, admin shell, and Batch Leader shell.
+- Mock providers and structured telemetry.
 
-- Repository, TypeScript app, linting, type checks, tests, CI, and environment templates.
-- Supabase development and beta environments with versioned migrations.
-- Email verification, profiles, Admin/Batch Leader/Student roles, generic catalog, cohort membership/release, and RLS tests.
-- Responsive bilingual shell, stage-aware filters, dynamic Module/Subject labels, retention preference, account settings, and admin shell.
-- Admin preview, per-unit publication, and cohort lock/unlock controls using mocked processed-source readiness.
-- Mocked AI responses for UI and database work without avoidable provider spend.
+Exit gate: every role sees only authorized data; deployments/migrations repeat cleanly; no critical path depends on local state.
 
-Exit gate: a verified student sees only released cohorts/units available to their membership; a Batch Leader can submit only to an assigned campaign and cannot publish or administer.
-
-### Phase 2 — Intake, optimization, deletion, and retrieval backbone
+### Phase 2: Automated intake and optimized source lifecycle
 
 **Estimated effort:** 3 weeks
 
-Deliverables:
+- Campaign submission and source-version model.
+- Private temporary upload and durable processed storage.
+- Durable jobs, leases, retries, and reconciliation.
+- PDF extraction, selective OCR, full audio transcription, normalization, locators, and professor-hint tags.
+- Automated quality, verified raw deletion, chunking, embedding, unified indexing, and readiness.
 
-- Collection campaigns, Batch Leader submissions, source metadata/rights, temporary raw-object lifecycle, processed versions, and durable job records.
-- PDF/book to Markdown plus locator sidecar, OCR routing, full audio transcription, normalization, compressed processed storage, chunking, and embeddings.
-- Conversion quality report, duplicate detection, raw-deletion queue/audit, retry policy, and review queue.
-- Cohort/curriculum-unit-filtered hybrid search, stable citations, and retrieval evaluation runner.
-- Ingest the Human Medicine pilot corpus and correct source-processing defects.
+Exit gate: representative PDFs/audio reach READY automatically; processed text is complete; raw objects are deleted; retries duplicate nothing and repeat no charge.
 
-Exit gate: one Human Medicine cohort has ready optimized sources; verified raw files are deleted and audited; admin-published Modules are visible only after cohort unlock; retrieval has zero cross-cohort/unit leakage and citations resolve to durable locators.
-
-### Phase 3 — Grounded tutor and credit core
+### Phase 3: Strict subject-chat RAG
 
 **Estimated effort:** 3 weeks
 
-Deliverables:
+- Subject-specific streamed chat and secure hybrid retrieval.
+- Full, partial, unavailable, and conflict evidence contracts.
+- Strict generation and post-validation.
+- Evidence links with optional reliable locators.
+- Professor-hint behavior, educational case behavior, and real-patient boundary.
+- Automated quotas, rate limiting, settlement, refunds, and regression runner.
 
-- Streaming bilingual tutor.
-- Evidence sufficiency and cited-answer contract.
-- Source-conflict behavior and session-level external-search preference behind a feature flag.
-- Daily allowance, credit ledger, reservation, settlement, refund, rate limits, and usage events.
-- Chat-retention choice, deletion flow, reporting flow, and consent-limited admin diagnostics.
-- Continuous evaluation after each retrieval, prompt, or provider change.
+Exit gate: accepted answers contain zero unsupported material claims, unavailable answers are not invented, conflicts show both positions, hints are retrievable, and leakage is zero.
 
-Exit gate: the Human Medicine gold set meets the initial quality gates and failed requests refund correctly.
-
-### Phase 4 — Study tools and MCQ engine
-
-**Estimated effort:** 2 weeks
-
-Deliverables:
-
-- Source-version-bound summaries and flashcards.
-- Original-exam import with origin/permission labels.
-- Structured MCQ generation with validation and option-level explanations.
-- Quiz setup, timed/untimed attempts, saved scores, review, and basic weak-topic signals.
-- Reported/failed MCQ review and invalidation after source updates.
-
-Exit gate: a student can go from Module/Subject selection to cited chat, study artifact, quiz completion, and review in one session.
-
-### Phase 5 — Operations, Drive, Telegram, and automation
+### Phase 4: NotebookLM-style Studio and quiz loop
 
 **Estimated effort:** 2-3 weeks
 
-Deliverables:
+- Dedicated Studio inside each Module/Subject.
+- Summary, study guide, practice questions, flashcards, revision pack, and MCQs.
+- Shared strict-grounding/evidence contract and safe artifact reuse.
+- MCQ validation, explanations, timed/untimed quiz, review, scoring, and weak-topic signals.
+- Reporting and invalidation after source changes.
 
-- Drive/object-storage intake conventions, temporary raw-object lifecycle, deletion verification, and processed-source storage monitoring.
-- Telegram webhook for metadata and payment evidence; enforce the small-file limit and direct large files to Drive.
-- Local n8n orchestration calling tested worker code rather than containing untested logic in visual nodes.
-- Idempotent retries, duplicate protection, error notification, admin job dashboard, and reservation reconciliation.
-- Test/manual payment-order flow with audited approval/rejection.
+Exit gate: a student completes chat, each artifact type, quiz, and grounded review without leaving the unit.
 
-Exit gate: an assigned Batch Leader submission can be processed, optimized, verified, and raw-deleted without manual database work; founders can preview/publish/unlock and resolve processing, deletion, credit, or payment exceptions through the admin interface.
-
-### Phase 6 — Veterinary Medicine track validation
+### Phase 5: Admin operations and zero-manual automation
 
 **Estimated effort:** 2 weeks
 
-Deliverables:
+- Complete catalog, campaign, source, release, quality, cost, storage, job, and incident dashboards.
+- Automatic stale-job, deletion, embedding, usage, and READY-state reconciliation.
+- Always-on worker/scheduler deployment, notifications, circuit breakers, flags, backup/restore, and incident runbooks.
+- Proof that routine operation needs no founder scripts, founder machine, or manual database repair.
 
-- Ingest the Veterinary Medicine pilot corpus.
-- Build and run the Veterinary gold evaluation set.
-- Validate terminology, bilingual behavior, citations, source isolation, and MCQ quality.
-- Confirm Subject terminology and remove Human-Medicine-specific assumptions from the product/data model.
+Exit gate: normal submission-to-student processing and recovery are automatic; admins make governance decisions or address surfaced exceptions only.
 
-Exit gate: both cohorts pass the same quality, availability, conversion/deletion, and access-control gates.
+### Phase 6: Veterinary Medicine validation
 
-### Phase 7 — Private beta and evidence review
+**Estimated effort:** 2 weeks
+
+- Process the veterinary corpus through the same workflow.
+- Validate Subject terminology, strict RAG, conflicts, missing evidence, case scenarios, and Studio.
+- Remove remaining Human-Medicine-specific assumptions.
+
+Exit gate: both cohorts pass identical security, processing, RAG, Studio, safety, and automation gates.
+
+### Phase 7: 100-student private beta and load validation
 
 **Estimated effort:** 3-4 weeks
 
-Deliverables:
+- Provision and onboard up to 100 verified students in waves.
+- Run the defined load before and during onboarding.
+- Measure activation, return, chat/Studio/quiz usage, errors, latency, queue delay, and cost.
+- Run weekly regression/feedback cycles and tune quota, cache, batches, workers, indexes, and connections.
+- Test provider slowdown/failure without losing accepted work.
 
-- Controlled onboarding for 30-60 active students.
-- Weekly student interviews and feedback triage.
-- Weekly regression evaluation and content correction cycle.
-- Dashboard for activation, return rate, reports, latency, provider failures, and cost.
-- Price and payment-intent experiments without charging students until commercial hosting and policy gates are satisfied.
+Exit gate: the target load works on the approved minimum-cost configuration while meeting quality, isolation, reliability, and cost gates.
 
-Exit gate: the PoC has credible evidence of quality, repeat usage, operational feasibility, and willingness to pay.
+### Phase 8: Post-PoC scale and automated commercial readiness
 
-### Phase 8 — First paid pilot (after PoC approval)
+This phase begins only after PoC acceptance.
 
-**Estimated effort:** 2-4 weeks
+- Select an automated payment provider and implement webhook fulfillment/reconciliation.
+- Publish commercial terms, privacy, refund, expiry, and content policies.
+- Increase resource plans based on measured bottlenecks.
+- Add the next program through catalog configuration and the existing pipeline.
+- Prepare video ingestion behind the existing processing contract.
 
-Deliverables:
+Exit gate: commercial operation and catalog expansion require configuration/capacity changes, not a core rewrite.
 
-- Commercial hosting and production backup decision.
-- Terms, privacy notice, content policy, refund rules, and educational disclaimer.
-- Real credit products and manual payment verification.
-- Small paid cohort, reconciliation process, support runbook, and measured gross-margin report.
+## 11. Quality, automation, and load gates
 
-Exit gate: 5-10 real ledger-backed paid orders complete correctly and the founders can support disputes/refunds.
-
-## 10. Quality gates
-
-These are initial targets. We will record the actual baseline and tighten targets before commercial growth.
-
-| Metric | Initial PoC gate | Evidence |
+| Metric | PoC acceptance gate | Required evidence |
 | --- | --- | --- |
-| Cross-cohort/unit leakage | 0 cases in evaluation | Retrieved cohort/unit IDs and access tests. |
-| Conversion completeness | 100% required pages/audio duration accounted for or explicitly rejected | Processing quality report and locator coverage. |
-| Raw deletion correctness | 100% verified raw objects deleted after approved conversion; 0 premature deletions | Storage check, deletion event, and recovery test. |
-| Availability correctness | 0 content visible unless source ready + unit published + cohort unlocked | Derived-availability and RLS/E2E tests. |
-| Citation validity | At least 95% | Citation resolves to correct page/timestamp. |
-| Claim support | At least 90%; no critical unsupported clinical claim | Founder/reviewer rubric against cited source. |
-| Insufficient-evidence behavior | At least 90% correct behavior | Negative-answer test cases. |
-| Bilingual usefulness | Median at least 4/5 | English, Arabic, and mixed-language tester rubric. |
-| MCQ validity | At least 90% valid before student use | Correctness, uniqueness, rationale, citations, distractors. |
-| Transcription | No critical terminology error in sampled accepted segments | Reference transcript and terminology-error count. |
-| Latency | p50 under 5 seconds to first token; p95 under 12 seconds target | Server telemetry. |
-| Cost | p95 action cost fits allowance and margin plan | Usage events and provider invoices. |
+| Cross-user/cohort/unit leakage | 0 cases | RLS, authorization, retrieval, and E2E tests. |
+| Unsupported factual claims | 0 in accepted frozen evaluation answers | Claim-to-evidence review and validator results. |
+| Evidence provenance coverage | 100% of accepted factual answers/artifacts linked to evidence | Evidence join records. |
+| Missing-information behavior | At least 95% correct; no hidden-knowledge completion | Negative/partial cases. |
+| Conflict behavior | 100% of known frozen conflicts disclose both supported positions | Conflict suite. |
+| Professor-hint retrieval | At least 95% for direct relevant questions | Tagged audio cases. |
+| Educational case behavior | At least 95% answered without false refusal when evidence exists | Safety suite. |
+| Real-patient boundary | 100% of explicit high-risk cases apply policy | Safety suite. |
+| Conversion completeness | 100% required pages/audio accounted for or rejected | Quality reports. |
+| Raw deletion correctness | 100% accepted sources deleted; 0 premature deletions | Storage checks/events. |
+| Availability correctness | 0 unauthorized or premature units | Availability/E2E tests. |
+| Artifact grounding | 0 unsupported accepted claims/answers/explanations in frozen suite | Artifact validation. |
+| Retry idempotency | 0 duplicated source, segment, embedding, artifact, usage, or charge | Replay/fault tests. |
+| Routine automation | 0 manual processing steps in accepted path | Job event timeline. |
+| 100-student workload | No leakage, lost accepted work, or uncontrolled backlog | Load/queue/database report. |
+| Interactive availability | At least 99% successful requests during controlled load, excluding quota rejection | Load report. |
+| Chat latency | Target p50 under 5s and p95 under 12s to first token | Telemetry. |
+| Cost | p95 action and total workload inside approved cap | Usage/cost ledger. |
 
-Any fabricated citation, cross-cohort/unit leakage, premature raw deletion, incorrect availability, critical unsafe claim, or unauthorized data exposure is a release blocker even if other averages pass.
+Any scope leakage, unsupported clinical claim sent as grounded fact, hidden external knowledge, concealed conflict, premature deletion, unauthorized exposure, or repeatable duplicate provider charge is a release blocker.
 
-## 11. Beta success signals
-
-The beta is successful only if quality and student value are both present.
+## 12. Success signals
 
 | Signal | Initial target |
 | --- | --- |
-| Active beta students | 30-60 verified students |
-| Activation | At least 60% complete one useful chat or quiz |
-| 7-day return | At least 25% as a provisional target |
-| Repeated value | At least 20% complete 3+ meaningful study sessions in one week |
-| Willingness to pay | At least 10% create an order or give an explicit interview commitment |
-| Paid validation | 5-10 completed paid credit orders after commercial readiness |
+| Capacity proof | 100 provisioned students and successful defined workload. |
+| Activation | At least 60% complete a useful chat, Studio artifact, or quiz. |
+| 7-day return | At least 25% provisionally. |
+| Repeated value | At least 20% complete 3+ meaningful sessions in one week. |
+| Source trust | At least 80% of sampled active users rate grounded answers useful/trustworthy. |
+| Automation | At least 95% of valid sources reach READY without exceptional intervention; others are isolated/explained automatically. |
+| Cost predictability | Weekly cost stays inside the cap and is attributable by action/source/cohort. |
+| Scale readiness | No core rewrite is required for the next program or resource tier. |
 
-## 12. Cost-control policy
+The PoC does not require paid-order validation. Willingness to pay may be researched through interviews without a manual payment system.
 
-- No real provider key is used until Ahmed and Ziad approve a maximum test spend.
-- Use mocks for UI, database, and ordinary development work.
-- Reserve real model calls for evaluation, content ingestion, and meaningful end-to-end tests.
-- Set provider budgets/alerts and an application kill switch by provider/action.
-- Limit source-batch size, output tokens, MCQ count, and external search in beta.
-- Record model, tokens, audio minutes, search calls, latency, retries, and cost for every provider action.
-- Do not set final credit prices until a 100-action benchmark establishes p50 and p95 costs.
+## 13. Cost-control policy
 
-## 13. Decision log
+- Ahmed and Ziad approve hard total and weekly caps before live providers.
+- Use mocks and frozen fixtures unless a real call is necessary for evaluation.
+- Each provider/action has a kill switch, concurrency limit, timeout, retry limit, and budget.
+- Limit evidence size, output tokens, artifact count, and user daily usage.
+- Key embeddings by content hash/version and avoid unnecessary regeneration.
+- Reuse artifacts only when authorization, source versions, policy, language, and parameters match.
+- Preflight audio duration/format and maximum job cost.
+- Record provider/model/version, units, latency, attempts, result, and cost for every action.
+- Alert at 50%, 75%, and 90%; block new optional paid work safely at 100%.
+- Benchmark with representative project data before provider commitment.
+- Never weaken isolation, grounding, completeness, or deletion verification to reduce cost.
 
-Use this table for decisions that influence scope, safety, cost, or schedule. We should update it before beginning a related phase.
+## 14. Future video-processing roadmap
 
-| ID | Decision | Proposed default | Owner | Status |
+Video is excluded from the PoC implementation, but the content contract must support it later.
+
+1. Accept permitted video through the campaign/source-version system.
+2. Validate type, size, duration, rights, checksum, and estimated cost.
+3. Extract complete audio in an isolated worker.
+4. Transcribe it with timestamps and terminology handling.
+5. Optionally capture necessary visual text/slide changes if later required.
+6. Normalize into the same Markdown/JSON representation.
+7. Apply the same quality, hint, conflict, chunking, embedding, and indexing rules.
+8. Delete raw video and temporary audio after verified processing.
+9. Add the transcript to the same unified curriculum-unit pool.
+
+Video adds a processor behind the existing pipeline; it must not create a separate knowledge system.
+
+## 15. Decision log
+
+| ID | Decision | Required/default direction | Owner | Status |
 | --- | --- | --- | --- | --- |
-| D-01 | First Human Medicine cohort/modules | Choose the highest cohort/content-readiness score | Ahmed | Open |
-| D-02 | First Veterinary Medicine cohort/subjects | Choose the highest cohort/content-readiness score | Ziad | Open |
-| D-03 | Pilot universities | Start with the institutions whose content rights/testers are strongest | Ahmed + Ziad | Open |
-| D-04 | Model, embedding, transcription providers | Select after the project-specific benchmark | Ahmed + Ziad | Open |
-| D-05 | Maximum PoC spend | Set a hard total cap before live evaluation | Ahmed + Ziad | Open |
-| D-06 | External web search in beta | Feature-flagged; enable only after safety and cost evaluation | Ahmed + Ziad | Proposed |
-| D-07 | Real payment collection | Only after commercial-hosting and policy gates | Ahmed + Ziad | Proposed |
-| D-08 | Chat retention default | Student-controlled, with minimal operational metadata for no-save sessions | Ahmed + Ziad | Proposed |
-| D-09 | Raw upload deletion | Delete automatically only after conversion/locator/checksum verification and required review; no permanent raw retention by default | Ahmed + Ziad | Proposed |
-| D-10 | Processed source format | Normalized Markdown plus structured JSON locator sidecar, compressed at rest | Ahmed + Ziad | Proposed |
-| D-11 | Batch Leader authority | Campaign-scoped submission/status only; no publication/admin/student-data access | Ahmed + Ziad | Proposed |
-| D-12 | Catalog abstraction | Education stage -> institution -> program -> level -> term -> cohort -> typed curriculum unit | Ahmed + Ziad | Proposed |
+| D-01 | First Human Medicine cohort | Select by source completeness, rights, reviewers, demand, and Batch Leader readiness | Ahmed | Open |
+| D-02 | First Veterinary Medicine cohort | Use the same scoring model | Ziad | Open |
+| D-03 | Pilot institutions | Start where rights, complete sources, and testers are strongest | Ahmed + Ziad | Open |
+| D-04 | AI providers | Select using project quality, latency, and cost benchmarks | Ahmed + Ziad | Open |
+| D-05 | Maximum PoC spend | Hard total and weekly limits before live processing | Ahmed + Ziad | Open |
+| D-06 | Knowledge boundary | Approved uploaded material only; no outside answer source | Ahmed + Ziad | Approved direction |
+| D-07 | PoC payment model | Free controlled beta; no manual payment operations | Ahmed + Ziad | Approved direction |
+| D-08 | Chat retention | Student-controlled content with minimal operational metadata | Ahmed + Ziad | Proposed |
+| D-09 | Raw lifecycle | Temporary only; automatic verified deletion after complete output | Ahmed + Ziad | Approved direction |
+| D-10 | Processed format | Normalized Markdown/equivalent plus structured JSON metadata/locators | Ahmed + Ziad | Proposed |
+| D-11 | Batch Leader authority | Campaign-scoped submission/status only | Ahmed + Ziad | Approved direction |
+| D-12 | Catalog abstraction | Stage -> institution/system -> program -> level -> term -> cohort -> unit | Ahmed + Ziad | Approved direction |
+| D-13 | PoC capacity | At least 100 students on minimum practical resources | Ahmed + Ziad | Approved direction |
+| D-14 | Citations | Internal provenance mandatory; exact locator optional when reliable | Ahmed + Ziad | Approved direction |
+| D-15 | Automation | Always-on durable jobs/workers; no founder-machine dependency | Ahmed + Ziad | Approved direction |
+| D-16 | Video | Deferred processor using existing ingestion/pool contracts | Ahmed + Ziad | Approved direction |
 
-## 14. Immediate next actions
+## 16. Immediate actions
 
-1. Choose candidate Human Medicine and Veterinary Medicine cohorts, including institution, program, academic level, term, and curriculum edition.
-2. Define each program's curriculum display configuration (`MODULE` or `SUBJECT`).
-3. Identify/contact candidate Batch Leaders and create the material-request checklist.
-4. List all available PDFs, books, recordings, past exams, answer keys, and permission records.
-5. Score each cohort with content completeness, reviewer familiarity, exam availability, audio/scan quality, tester availability, and demand.
-6. Confirm written rights for temporary raw storage, provider processing, processed-text retention, citations, exams, raw deletion, and future commercial access.
-7. Approve the verified raw-file deletion policy and processed-source formats.
-8. Recruit at least 10 committed testers for the first cohort.
-9. Define the maximum PoC spend and a working billing route.
-10. Select 10 representative documents/pages and 60 minutes of mixed-quality audio for the conversion benchmark.
-11. Start the first 100 Human Medicine gold tutor cases, including negative and conflict cases.
-12. Create the repository and begin Phase 1 using mocked AI responses.
-13. Benchmark generation, embedding, transcription, and search candidates before locking provider choices or credit prices.
+1. Choose candidate cohorts with institution, program, level, term, edition, and unit labels.
+2. Identify the Batch Leader for each cohort.
+3. Build the source inventory, including professor recordings and hints.
+4. Confirm rights for temporary storage, provider processing, processed retention, student use, deletion, and future commercial use.
+5. Approve the Markdown/JSON contract and deletion evidence.
+6. Define the exact 100-student load scenario and minimum-cost hosting envelope.
+7. Approve provider budgets and kill-switch ownership.
+8. Select native PDFs, scanned PDFs, mixed-language audio, and professor voice notes for benchmarks.
+9. Create 100 Human Medicine tutor cases covering missing/partial evidence, conflicts, hints, academic cases, and real-patient boundaries.
+10. Create Studio evaluation cases for every artifact type.
+11. Create the repository and production-shaped environments with mocked providers first.
+12. Implement the execution runbook in dependency order.
 
-## 15. How we will work from this document
+## 17. Working rules
 
-- We will update this file when a decision, scope item, milestone, or quality gate changes.
-- We will not mark a phase complete because the interface looks finished; the documented exit gate must have evidence.
-- We will keep unresolved questions visible in the decision log.
-- The original Word blueprint remains a detailed reference. This Markdown plan is the active execution document.
+- Update this file when direction, scope, architecture, quality, capacity, or operating policy changes.
+- Do not complete a phase because its interface looks finished; exit evidence must exist.
+- Record unresolved decisions instead of hiding assumptions in code.
+- Do not accept a local-only shortcut that forces a production rewrite.
+- The original Word blueprint remains reference material; this Markdown file is the active master plan.

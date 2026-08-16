@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="ar-EG" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="شرح مصري بسيط ومفصل لنطاق مشروع UniMind وطريقة عمله وخطة إثبات الفكرة.">
+  <title>UniMind — شرح المشروع الكامل</title>
+  <style>
+    :root {
+      --scale: 1;
+      --bg: #f4f7fb;
+      --paper: #ffffff;
+      --soft: #edf5ff;
+      --soft-2: #f7f9fc;
+      --text: #172033;
+      --muted: #5d6879;
+      --line: #dce5ef;
+      --brand: #155fa0;
+      --brand-2: #0c4779;
+      --green: #14765c;
+      --green-soft: #e8f7f1;
+      --amber: #9a5b07;
+      --amber-soft: #fff4dd;
+      --red: #a63b3b;
+      --red-soft: #fff0f0;
+      --shadow: 0 14px 38px rgba(25, 49, 79, .09);
+      --radius: 18px;
+    }
+    html[data-theme="dark"] {
+      --bg: #0c1420;
+      --paper: #142131;
+      --soft: #17334d;
+      --soft-2: #182737;
+      --text: #edf3fa;
+      --muted: #b6c2d1;
+      --line: #2c4056;
+      --brand: #72bff2;
+      --brand-2: #a6d9f9;
+      --green: #71d1ae;
+      --green-soft: #14372f;
+      --amber: #f3c270;
+      --amber-soft: #3a2d18;
+      --red: #ff9b9b;
+      --red-soft: #3b2228;
+      --shadow: 0 16px 44px rgba(0, 0, 0, .28);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 92px; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+      font-size: calc(17px * var(--scale));
+      line-height: 1.9;
+      text-rendering: optimizeLegibility;
+    }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    .progress {
+      position: fixed;
+      inset: 0 0 auto;
+      height: 4px;
+      z-index: 100;
+    }
+    .progress span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #20a4dc, #155fa0);
+    }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 70px;
+      padding: 10px max(14px, env(safe-area-inset-right)) 10px max(14px, env(safe-area-inset-left));
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--paper) 93%, transparent);
+      backdrop-filter: blur(14px);
+    }
+    .brand { min-width: 0; }
+    .brand strong { display: block; color: var(--brand-2); font-size: 1rem; }
+    .brand small {
+      display: block;
+      max-width: 46vw;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tools { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    button {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--paper);
+      color: var(--text);
+      padding: 8px 10px;
+      font: inherit;
+      font-size: .82rem;
+      cursor: pointer;
+    }
+    button:hover, button:focus-visible { border-color: var(--brand); color: var(--brand-2); outline: none; }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(220px, 290px) minmax(0, 920px);
+      justify-content: center;
+      align-items: start;
+      gap: 28px;
+      width: min(1320px, calc(100% - 28px));
+      margin: 26px auto 64px;
+      direction: ltr;
+    }
+    .toc {
+      position: sticky;
+      top: 92px;
+      max-height: calc(100vh - 112px);
+      overflow: auto;
+      direction: rtl;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+      scrollbar-width: thin;
+    }
+    .toc h2 { margin: 0 4px 10px; font-size: 1rem; color: var(--brand-2); }
+    .toc ol { margin: 0; padding: 0; list-style: none; }
+    .toc a {
+      display: block;
+      padding: 7px 9px;
+      border-radius: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .84rem;
+      line-height: 1.55;
+    }
+    .toc a:hover, .toc a.active { color: var(--brand-2); background: var(--soft); }
+    main { min-width: 0; direction: rtl; }
+    article {
+      padding: clamp(22px, 5vw, 58px);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .hero {
+      margin: calc(clamp(22px, 5vw, 58px) * -1);
+      margin-bottom: 42px;
+      padding: clamp(32px, 7vw, 70px) clamp(22px, 5vw, 58px);
+      background:
+        radial-gradient(circle at 12% 20%, rgba(43, 169, 218, .19), transparent 32%),
+        linear-gradient(145deg, var(--soft), var(--paper));
+      border-bottom: 1px solid var(--line);
+    }
+    h1, h2, h3 { color: var(--brand-2); line-height: 1.45; text-wrap: balance; }
+    h1 { margin: 0 0 14px; font-size: clamp(2rem, 7vw, 3.5rem); letter-spacing: -.035em; }
+    .lead { margin: 0; max-width: 760px; color: var(--muted); font-size: 1.08em; }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+    .tag { padding: 6px 11px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); font-size: .84em; }
+    section { margin-top: 56px; }
+    section:first-of-type { margin-top: 0; }
+    h2 {
+      margin: 0 0 22px;
+      padding: 10px 14px;
+      border-inline-start: 5px solid var(--brand);
+      border-radius: 10px;
+      background: var(--soft);
+      font-size: clamp(1.35rem, 4vw, 1.75rem);
+    }
+    h3 { margin: 30px 0 10px; font-size: 1.17rem; }
+    p { margin: 12px 0; }
+    ul, ol { padding-inline-start: 1.4em; }
+    li { margin: 8px 0; }
+    strong { color: var(--brand-2); }
+    .en {
+      direction: ltr;
+      unicode-bidi: isolate;
+      display: inline-block;
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-weight: 650;
+    }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 20px 0; }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .card {
+      min-width: 0;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--soft-2);
+    }
+    .card h3 { margin: 0 0 8px; font-size: 1.02rem; }
+    .card p { margin: 0; color: var(--muted); }
+    .callout {
+      margin: 20px 0;
+      padding: 17px 19px;
+      border: 1px solid var(--line);
+      border-inline-start: 5px solid var(--brand);
+      border-radius: 12px;
+      background: var(--soft);
+    }
+    .callout.good { background: var(--green-soft); border-inline-start-color: var(--green); }
+    .callout.warn { background: var(--amber-soft); border-inline-start-color: var(--amber); }
+    .callout.block { background: var(--red-soft); border-inline-start-color: var(--red); }
+    .callout > :first-child { margin-top: 0; }
+    .callout > :last-child { margin-bottom: 0; }
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 18px 0;
+      counter-reset: flow;
+    }
+    .step {
+      position: relative;
+      padding: 42px 14px 15px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--soft-2);
+      counter-increment: flow;
+    }
+    .step::before {
+      content: counter(flow);
+      position: absolute;
+      inset-block-start: 12px;
+      inset-inline-start: 12px;
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--brand);
+      color: white;
+      font: 700 .8rem/1 Arial;
+    }
+    .step strong { display: block; margin-bottom: 5px; font-size: .94em; }
+    .step span { color: var(--muted); font-size: .88em; line-height: 1.65; }
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      margin: 18px 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+    table { width: 100%; min-width: 650px; border-collapse: collapse; font-size: .91em; }
+    th, td { padding: 12px; border-bottom: 1px solid var(--line); text-align: right; vertical-align: top; }
+    th { background: var(--soft); color: var(--brand-2); }
+    tr:last-child td { border-bottom: 0; }
+    .checklist { list-style: none; padding: 0; }
+    .checklist li { position: relative; padding-inline-start: 29px; }
+    .checklist li::before { content: "✓"; position: absolute; inset-inline-start: 0; color: var(--green); font-weight: 900; }
+    details {
+      margin: 12px 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--soft-2);
+    }
+    summary { padding: 13px 16px; cursor: pointer; color: var(--brand-2); font-weight: 750; }
+    details > div { padding: 0 16px 15px; }
+    .mini { color: var(--muted); font-size: .9em; }
+    .mobile-menu { display: none; }
+    .top-link { color: var(--brand); }
+    footer { margin-top: 58px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--muted); text-align: center; font-size: .88em; }
+    @media (max-width: 980px) {
+      .layout { display: block; width: min(100% - 18px, 920px); margin-top: 12px; }
+      .toc { display: none; position: fixed; inset: 78px 9px 10px; z-index: 80; max-height: none; }
+      body.menu-open .toc { display: block; }
+      .mobile-menu { display: inline-block; }
+      article { border-radius: 15px; }
+      .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      body { font-size: calc(16px * var(--scale)); line-height: 1.82; }
+      .topbar { min-height: 62px; padding-block: 7px; }
+      .brand small { display: none; }
+      .tools button { padding: 7px 8px; font-size: .76rem; }
+      .tools .wide-tool { display: none; }
+      article { padding: 20px 15px 34px; border-inline: 0; }
+      .hero { margin: -20px -15px 34px; padding: 34px 18px; }
+      .grid, .grid.three, .flow { grid-template-columns: 1fr; }
+      section { margin-top: 44px; }
+      h2 { padding: 9px 11px; }
+      .card, .callout { padding: 15px; }
+    }
+    @media print {
+      :root { --bg: #fff; --paper: #fff; --text: #111; --muted: #333; --line: #bbb; --brand: #174e78; --brand-2: #174e78; --soft: #eef4f8; --soft-2: #fff; }
+      .topbar, .toc, .progress { display: none !important; }
+      .layout { display: block; width: 100%; margin: 0; }
+      article { border: 0; box-shadow: none; padding: 0; }
+      .hero { margin: 0 0 28px; padding: 25px 0; }
+      section, h2, h3, .card, .callout { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+  <header class="topbar">
+    <div class="brand">
+      <strong>UniMind — شرح المشروع</strong>
+      <small>دليل بسيط ومفصل لفهم النطاق كامل</small>
+    </div>
+    <div class="tools" aria-label="أدوات الصفحة">
+      <button class="mobile-menu" id="menuButton" type="button">الفهرس</button>
+      <button id="fontDown" type="button" aria-label="تصغير الخط">أ−</button>
+      <button id="fontUp" type="button" aria-label="تكبير الخط">أ+</button>
+      <button class="wide-tool" id="themeButton" type="button">الوضع الليلي</button>
+      <button class="wide-tool" id="printButton" type="button">طباعة</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="toc" id="toc" aria-label="فهرس المحتوى">
+      <h2>محتويات الدليل</h2>
+      <ol>
+        <li><a href="#idea">1. الفكرة والمشكلة</a></li>
+        <li><a href="#scope">2. حجم المشروع</a></li>
+        <li><a href="#people">3. مين بيستخدمه</a></li>
+        <li><a href="#catalog">4. تنظيم الدراسة</a></li>
+        <li><a href="#student">5. تجربة الطالب</a></li>
+        <li><a href="#sources">6. جمع وتجهيز المصادر</a></li>
+        <li><a href="#rag">7. عقل المنصة ومصادر الإجابة</a></li>
+        <li><a href="#studio">8. مساحة المذاكرة</a></li>
+        <li><a href="#medical">9. الأسئلة الطبية</a></li>
+        <li><a href="#admin">10. تحكم الإدارة</a></li>
+        <li><a href="#automation">11. التشغيل الآلي</a></li>
+        <li><a href="#tech">12. البناء التقني</a></li>
+        <li><a href="#security">13. الأمان والخصوصية</a></li>
+        <li><a href="#cost">14. التكلفة والتوسع</a></li>
+        <li><a href="#included">15. داخل وخارج النسخة الأولى</a></li>
+        <li><a href="#roadmap">16. مراحل التنفيذ</a></li>
+        <li><a href="#quality">17. شروط النجاح</a></li>
+        <li><a href="#examples">18. أمثلة كاملة</a></li>
+        <li><a href="#future">19. المستقبل</a></li>
+        <li><a href="#terms">20. معاني المصطلحات</a></li>
+      </ol>
+    </aside>
+
+    <main>
+      <article>
+        <header class="hero">
+          <h1>إيه هو مشروع UniMind؟</h1>
+          <p class="lead">الدليل ده معمول عشان أي صديق أو شريك يفهم فكرة المشروع، تجربة الطالب، طريقة تجهيز المحتوى، حدود الذكاء الاصطناعي، التشغيل، التكلفة، وخطة التنفيذ من غير ما يكون متخصص في البرمجة.</p>
+          <div class="tag-row">
+            <span class="tag">تعليم جامعي</span>
+            <span class="tag">ذكاء اصطناعي من المصادر</span>
+            <span class="tag">طب بشري وبيطري أولاً</span>
+            <span class="tag">جاهز للتوسع</span>
+            <span class="tag">١٠٠ طالب في الاختبار</span>
+          </div>
+        </header>
+
+        <section id="idea">
+          <h2>1. الفكرة والمشكلة اللي بنحلها</h2>
+          <p>الطالب بيكون عنده مصادر كتير ومبعثرة: كتب، ملفات محاضرات، تسجيلات صوتية، ملاحظات دكتور، وأسئلة امتحانات. البحث جوه كل ده بياخد وقت، وممكن الطالب مايعرفش يربط المعلومات ببعض أو يحدد المهم.</p>
+          <p><strong>UniMind</strong> بتحوّل المصادر دي لمساحة مذاكرة ذكية خاصة بكل مادة. الطالب يفتح المادة، يسأل، ويستلم إجابة مبنية على المصادر اللي اتجمعت للمادة دي فقط. كمان يقدر يعمل ملخصات، أدلة مذاكرة، أسئلة تدريب، بطاقات مراجعة، وامتحانات.</p>
+          <div class="callout good">
+            <strong>الفكرة الأساسية:</strong>
+            المنصة مش مدرس عام بيعتمد على معلومات الإنترنت. هي مساعد مذاكرة فاهم المصادر المعتمدة الخاصة بدفعة الطالب، ومايقولش معلومة مش موجودة فيها.
+          </div>
+          <h3>ليه المشروع مهم؟</h3>
+          <ul>
+            <li>يوفر وقت البحث وسط الملفات والتسجيلات.</li>
+            <li>يخلي شرح المادة مرتبط فعلاً بمنهج الدفعة.</li>
+            <li>يحافظ على ملاحظات الدكتور وتلميحات الامتحان بدل ما تضيع في تسجيل طويل.</li>
+            <li>يساعد الطالب يحول نفس المحتوى لأكتر من طريقة مذاكرة.</li>
+            <li>يقول بوضوح لما المصادر ناقصة أو متعارضة بدل ما يخمّن.</li>
+          </ul>
+        </section>
+
+        <section id="scope">
+          <h2>2. حجم المشروع ورؤيته</h2>
+          <p>إحنا مش بنعمل تجربة صغيرة تتترمي بعد العرض. النسخة الأولى، أو <span class="en">PoC</span>، لازم تكون منتج شغال فعلاً، بتكلفة قليلة، ويقدر يخدم ١٠٠ طالب في اختبار واقعي.</p>
+          <div class="grid">
+            <div class="card">
+              <h3>البداية</h3>
+              <p>طب بشري وطب بيطري، وكل واحد بمنهجه ومصادره وطريقة عرض المواد المناسبة ليه.</p>
+            </div>
+            <div class="card">
+              <h3>بعد كده</h3>
+              <p>صيدلة، هندسة، وباقي الكليات من غير إعادة بناء المنصة.</p>
+            </div>
+            <div class="card">
+              <h3>الهدف البعيد</h3>
+              <p>إضافة الثانوية العامة ومسارات تعليمية تانية بنفس الهيكل المرن.</p>
+            </div>
+            <div class="card">
+              <h3>طريقة التوسع</h3>
+              <p>نزود موارد الخادم وحدود الخدمات، مش نكتب المشروع من أول وجديد.</p>
+            </div>
+          </div>
+          <p>اختبار الـ١٠٠ طالب يشمل دخول للحسابات، فتح المواد، أسئلة في المحادثة، إنشاء أدوات مذاكرة، حل امتحانات، وفي نفس الوقت معالجة ملفات جديدة في الخلفية.</p>
+        </section>
+
+        <section id="people">
+          <h2>3. مين بيستخدم المنصة؟</h2>
+          <div class="grid three">
+            <div class="card">
+              <h3>الطالب</h3>
+              <p>يدخل المواد المتاحة لدفعته، يسأل، يذاكر، يحل، ويراجع تقدمه.</p>
+            </div>
+            <div class="card">
+              <h3>أحمد وزياد</h3>
+              <p>هما الإدارة الأساسية. بيحددوا الجامعات والكليات والدفعات والمحتوى اللي يظهر.</p>
+            </div>
+            <div class="card">
+              <h3>مسؤول الدفعة</h3>
+              <p><span class="en">Batch Leader</span> بيجمع ويرفع مصادر دفعة محددة بصلاحية محدودة.</p>
+            </div>
+          </div>
+          <h3>حدود كل دور</h3>
+          <ul>
+            <li>الطالب مايشوفش محتوى دفعة أو مادة مش مسموحة ليه.</li>
+            <li>مسؤول الدفعة يرفع ويتابع الملفات المطلوبة فقط. مايقدرش ينشر المحتوى أو يشوف محادثات الطلبة.</li>
+            <li>أحمد وزياد يقدروا ينشروا أو يخفوا مادة، يفتحوا أو يقفلوا دفعة، ويوقفوا مصدر فيه مشكلة.</li>
+            <li>حتى الإدارة ماتشوفش محادثات الطلبة العادية. المراجعة تكون للحالات اللي الطالب بلغ عنها أو وافق على مشاركتها.</li>
+          </ul>
+        </section>
+
+        <section id="catalog">
+          <h2>4. إزاي الدراسة متقسمة جوه المنصة؟</h2>
+          <p>التقسيم معمول بشكل عام عشان يناسب الجامعة والثانوية مستقبلاً:</p>
+          <div class="flow">
+            <div class="step"><strong>المرحلة</strong><span>جامعة دلوقتي، وثانوية بعدين.</span></div>
+            <div class="step"><strong>الجامعة أو النظام</strong><span>مثلاً جامعة الزقازيق.</span></div>
+            <div class="step"><strong>الكلية أو المسار</strong><span>مثلاً طب بشري.</span></div>
+            <div class="step"><strong>السنة</strong><span>مثلاً السنة الثالثة.</span></div>
+            <div class="step"><strong>الفصل الدراسي</strong><span>الأول أو الثاني.</span></div>
+            <div class="step"><strong>الدفعة والمنهج</strong><span>النسخة الدقيقة من منهج الدفعة.</span></div>
+            <div class="step"><strong>الوحدة الدراسية</strong><span>المادة اللي الطالب هيفتحها.</span></div>
+          </div>
+          <p>في الطب البشري، الوحدة غالباً اسمها <span class="en">Module</span>. في الكليات التانية غالباً اسمها <span class="en">Subject</span>. الاسم بيتحدد من إعدادات الكلية، مش شرط مكتوب جوه البرنامج.</p>
+          <div class="callout">
+            مثال: جامعة الزقازيق ← طب بشري ← السنة الثالثة ← الفصل الأول ← دفعة ٢٠٢٦ ← وحدة القلب.
+          </div>
+        </section>
+
+        <section id="student">
+          <h2>5. تجربة الطالب خطوة بخطوة</h2>
+          <ol>
+            <li>الطالب يعمل حساب ويأكد البريد الإلكتروني.</li>
+            <li>يوافق على قواعد الخصوصية وإن المنصة للتعليم، مش لعلاج مريض حقيقي.</li>
+            <li>يختار الجامعة، الكلية، السنة، والفصل الدراسي.</li>
+            <li>يشوف المواد المفتوحة لدفعته واللي عندها مصادر جاهزة فقط.</li>
+            <li>يفتح مادة، فيدخل مساحة خاصة بيها فيها المحادثة ومساحة المذاكرة.</li>
+            <li>يسأل بالعربي المصري أو الإنجليزي أو خليط بينهم.</li>
+            <li>ياخد إجابة من مصادر المادة، أو رسالة واضحة إن الإجابة مش موجودة، أو عرض للتعارض لو المصادر مختلفة.</li>
+            <li>يشوف اسم المصدر ونوعه، ومعاه رقم الصفحة أو وقت التسجيل لو متوفرين بشكل موثوق.</li>
+            <li>يستخدم مساحة المذاكرة عشان يعمل ملخص أو دليل أو أسئلة أو امتحان.</li>
+            <li>يقدر يبلغ عن إجابة أو سؤال فيه مشكلة.</li>
+          </ol>
+          <div class="callout warn">
+            كل محادثة مرتبطة بمادة واحدة واضحة. الطالب مايسألش في مادة ويستلم بالغلط معلومة من مادة أو دفعة تانية.
+          </div>
+        </section>
+
+        <section id="sources">
+          <h2>6. جمع وتجهيز المصادر</h2>
+          <h3>أولاً: جمع المحتوى</h3>
+          <p>أحمد أو زياد يعملوا حملة جمع لمادة أو دفعة محددة، ويبعتوا دعوة لمسؤول الدفعة. هو يرفع الكتب، ملفات المحاضرات، التسجيلات، الامتحانات، وملاحظات الدكتور المسموح باستخدامها.</p>
+          <h3>ثانياً: المعالجة التلقائية</h3>
+          <div class="flow">
+            <div class="step"><strong>فحص الملف</strong><span>الصلاحية، النوع، الحجم، التكرار، والمشاكل.</span></div>
+            <div class="step"><strong>استخراج المحتوى</strong><span>نص مباشر أو قراءة ضوئية أو تفريغ صوت.</span></div>
+            <div class="step"><strong>تنظيمه</strong><span>نص خفيف منظم ومعاه بيانات المصدر.</span></div>
+            <div class="step"><strong>فحص الجودة</strong><span>نتأكد إن الصفحات أو مدة الصوت كاملة.</span></div>
+            <div class="step"><strong>حذف الأصل</strong><span>بعد التأكد فقط، مع تسجيل دليل الحذف.</span></div>
+            <div class="step"><strong>تقسيم وفهرسة</strong><span>أجزاء صغيرة قابلة للبحث.</span></div>
+            <div class="step"><strong>جاهز</strong><span>المصدر يدخل مجموعة معرفة المادة.</span></div>
+          </div>
+          <h3>ملفات الكتب والمحاضرات</h3>
+          <p>الملف يتحول لنص منظم خفيف، غالباً بصيغة <span class="en">Markdown</span> ومعاه بيانات منظمة. لو الصفحات صور، النظام يستخدم قراءة ضوئية للصفحات المحتاجة فقط. لازم يحافظ على معنى الجداول والمعادلات والعناوين، مش يطلع نص ناقص لمجرد توفير مساحة.</p>
+          <h3>التسجيلات الصوتية</h3>
+          <p>التسجيل كله يتحول لنص، مع أوقات الجمل لما تكون متاحة. النظام يحافظ على خلط العربي والإنجليزي والمصطلحات العلمية، ويميّز تلميحات الدكتور وتصحيحاته والنقط اللي ركز عليها.</p>
+          <div class="callout block">
+            الملف الأصلي مايتحذفش قبل ما النظام يتأكد إن النسخة النصية كاملة، مقروءة، محفوظة، ومربوطة بالمصدر. لو الحذف فشل، النظام يعيد المحاولة ويبلغ الإدارة.
+          </div>
+        </section>
+
+        <section id="rag">
+          <h2>7. عقل المنصة وحدود مصادر الإجابة</h2>
+          <p>طريقة الإجابة اسمها <span class="en">RAG</span>. معناها إن النظام يبحث الأول جوه مصادر المادة، يختار الأجزاء المناسبة، وبعدها يكتب الإجابة اعتماداً عليها.</p>
+          <h3>القواعد اللي ممنوع تتكسر</h3>
+          <ul class="checklist">
+            <li>كل معلومة في الإجابة لازم تكون مدعومة من المحتوى المرفوع.</li>
+            <li>ممنوع استخدام بحث الإنترنت للإجابة.</li>
+            <li>ممنوع الذكاء الاصطناعي يكمل معلومة ناقصة من معلوماته العامة.</li>
+            <li>لو المعلومة مش موجودة، يقول بوضوح إنها غير متاحة في المصادر المرفوعة.</li>
+            <li>لو جزء موجود وجزء ناقص، يجاوب على الموجود ويحدد الناقص.</li>
+            <li>لو مصدرين مختلفين، يعرض الرأيين ومايختارش واحد في السر.</li>
+          </ul>
+          <h3>مجموعة معرفة واحدة للمادة</h3>
+          <p>كل الملفات المعتمدة للمادة تدخل مجموعة واحدة: كتاب، ملف محاضرة، تفريغ تسجيل، أو ملاحظة دكتور. نوع المصدر يفضل محفوظ عشان نعرف أصله، لكن الطالب مش محتاج يختار قاعدة منفصلة لكل نوع.</p>
+          <h3>إثبات مصدر الإجابة</h3>
+          <p>جوه النظام، كل إجابة محفوظ معاها الأجزاء الدقيقة اللي اتبنت عليها. عرض رقم صفحة أو توقيت للتلميذ مفيد لما يكون موثوق، لكنه مش شرط في كل إجابة. الشرط الحقيقي إن مافيش معلومة تظهر من غير دليل داخلي من المصادر.</p>
+          <h3>تعارض المصادر</h3>
+          <p>لو كتاب بيقول حاجة وتسجيل الدكتور بيقول حاجة مختلفة، الإجابة توضح إن فيه تعارض، تعرض كلام كل مصدر، وتقول إن المواد نفسها ماحسمتش الاختلاف. تلميح الدكتور يفضل اسمه تلميح، مش ضمان لسؤال الامتحان.</p>
+        </section>
+
+        <section id="studio">
+          <h2>8. مساحة المذاكرة الشبيهة بـ NotebookLM</h2>
+          <p>جوه كل مادة فيه مساحة اسمها <span class="en">Studio</span>. بتستخدم نفس مصادر المادة ونفس قواعد الدقة، وبتسمح للطالب يعمل:</p>
+          <div class="grid three">
+            <div class="card"><h3>ملخص</h3><p>شرح منظم ونقط مهمة ونواقص وتعارضات.</p></div>
+            <div class="card"><h3>دليل مذاكرة</h3><p>ترتيب للمفاهيم وأهداف وأسئلة مراجعة.</p></div>
+            <div class="card"><h3>أسئلة تدريب</h3><p>سؤال وإجابة وشرح ومستوى صعوبة.</p></div>
+            <div class="card"><h3>بطاقات مراجعة</h3><p>سؤال قصير وإجابة واضحة لكل نقطة.</p></div>
+            <div class="card"><h3>امتحان اختيار</h3><p>اختيارات، إجابة صحيحة، وشرح لكل اختيار.</p></div>
+            <div class="card"><h3>حزمة مراجعة</h3><p>تجميع مركز لموضوع أو جزء محدد.</p></div>
+          </div>
+          <p>كل منتج مذاكرة بيتفحص قبل العرض. لو سؤال أو إجابة أو شرح مش مدعوم، يترفض أو يتولد من جديد. ولو مصدر اتوقف أو اتغير، المنتجات القديمة المرتبطة بيه تتعلم إنها قديمة ومايتعرضوش كأنهم أحدث نسخة.</p>
+        </section>
+
+        <section id="medical">
+          <h2>9. التعامل مع الأسئلة الطبية والبيطرية</h2>
+          <p>طلبة الطب بيسألوا كتير في صورة حالات: أعراض، تشخيص، أدوية، جرعات، وإدارة الحالة. ده جزء طبيعي من المذاكرة، والمنصة لازم تجاوب عليه لما المصادر فيها الإجابة.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>نوع السؤال</th><th>تصرف المنصة</th></tr></thead>
+              <tbody>
+                <tr><td>حالة تعليمية واضحة</td><td>تجاوب من المصادر بشكل طبيعي، من غير رفض زيادة.</td></tr>
+                <tr><td>سؤال محتمل يكون تعليمي داخل مادة</td><td>تفهمه كتعليم في الأساس وتجاوب من المادة.</td></tr>
+                <tr><td>شخص بيطلب علاج لنفسه أو لمريض حقيقي</td><td>توضح إنها مش بديل للطبيب، وتوجه لرعاية مختصة أو طوارئ حسب الموقف من غير اختراع معلومات.</td></tr>
+                <tr><td>بيانات تعرف مريض حقيقي</td><td>تنبه الطالب مايبعتش بيانات شخصية، وتلتزم بسياسة الحفظ.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>قواعد الأمان ماتسمحش للمنصة تضيف معلومة طبية من بره المصادر بحجة التحذير أو المساعدة.</p>
+        </section>
+
+        <section id="admin">
+          <h2>10. تحكم أحمد وزياد في المنصة</h2>
+          <p>لوحة الإدارة هي مركز التحكم. منها يقدروا:</p>
+          <ul>
+            <li>يضيفوا جامعة أو كلية أو سنة أو فصل أو دفعة أو مادة.</li>
+            <li>يحددوا هل الكلية تعرض وحدات باسم <span class="en">Module</span> أو <span class="en">Subject</span>.</li>
+            <li>يعملوا حملات جمع ويعينوا مسؤول دفعة.</li>
+            <li>يتابعوا حالة كل ملف: وصل، بيتعالج، فشل، اتحذف أصله، اتفهرس، أو بقى جاهز.</li>
+            <li>يشوفوا تقارير الجودة، المساحة اللي اتوفرت، التكلفة، والوقت.</li>
+            <li>ينشروا أو يخفوا مادة، ويفتحوا أو يقفلوا دفعة.</li>
+            <li>يوقفوا نسخة مصدر فيها مشكلة من غير ما يمسحوا تاريخ الإجابات القديمة.</li>
+            <li>يعيدوا تشغيل حالة فشلت أو يعزلوها للمراجعة.</li>
+          </ul>
+          <div class="callout">
+            المادة تظهر للطالب فقط لو: الطالب عضو في الدفعة، الدفعة مفتوحة، المادة منشورة، فيه مصدر جاهز وفعال، وحقوق استخدامه سليمة.
+          </div>
+        </section>
+
+        <section id="automation">
+          <h2>11. التشغيل الآلي من غير شغل يدوي يومي</h2>
+          <p>المسار الطبيعي لازم يشتغل من غير ما أحمد أو زياد يشغلوا أوامر أو يعدلوا قاعدة البيانات. النظام هو اللي يعمل الفحص، التحويل، التفريغ، الحذف، التقسيم، الفهرسة، إعادة المحاولة، ومراجعة الحالات المعلقة.</p>
+          <h3>إزاي النظام يتعامل مع المشاكل؟</h3>
+          <ul>
+            <li>كل مهمة ليها سجل دائم وحالة واضحة.</li>
+            <li>لو خدمة خارجية وقفت، المهمة تستنى وتحاول تاني بعد وقت.</li>
+            <li>لو عامل المعالجة وقف فجأة، عامل تاني يكمل المهمة.</li>
+            <li>التكرار ماينتجش ملفين أو خصم استخدام مرتين.</li>
+            <li>الحالات المستحيلة تتعزل بسبب واضح بدل ما توقف باقي الملفات.</li>
+            <li>فحص دوري يدور على مهام معلقة، حذف فاشل، أجزاء ناقصة، أو استهلاك ماتقفلش.</li>
+          </ul>
+          <p>قرارات النشر وفتح الدفعات تفضل بإيد الإدارة لأنها قرارات تحكم، لكن التشغيل اليومي نفسه آلي. مافيش جزء أساسي لازم يفضل شغال على جهاز أحمد أو زياد.</p>
+        </section>
+
+        <section id="tech">
+          <h2>12. البناء التقني بشكل مبسط</h2>
+          <div class="grid">
+            <div class="card"><h3>واجهة الموقع</h3><p><span class="en">Next.js</span> و<span class="en">TypeScript</span> لواجهة سريعة ومناسبة للموبايل والكمبيوتر.</p></div>
+            <div class="card"><h3>الحسابات والبيانات</h3><p><span class="en">Supabase</span> و<span class="en">PostgreSQL</span> للحسابات، الصلاحيات، والمعلومات المنظمة.</p></div>
+            <div class="card"><h3>التخزين</h3><p>مكان خاص مؤقت للملفات الأصلية، ومكان دائم للنصوص المعالجة الخفيفة.</p></div>
+            <div class="card"><h3>المعالجة الخلفية</h3><p>عمال آليين منفصلين للملفات والصوت والذكاء الاصطناعي، ويقدروا يزيدوا مع الضغط.</p></div>
+            <div class="card"><h3>البحث</h3><p>بحث بالكلمات وبالمعنى مع بعض، ومفلتر قبل النتيجة حسب المادة والدفعة.</p></div>
+            <div class="card"><h3>المراقبة</h3><p>سجلات للأخطاء، الوقت، التكلفة، المحاولات، وحالة كل مهمة.</p></div>
+          </div>
+          <h3>أهم مجموعات البيانات</h3>
+          <ul>
+            <li>الحسابات والأدوار والموافقات.</li>
+            <li>الجامعات والكليات والسنين والفصول والدفعات والمواد.</li>
+            <li>حملات الجمع ومسؤولي الدفعات والملفات المرفوعة.</li>
+            <li>نسخ المصادر، النصوص المعالجة، الأجزاء، وأماكنها الأصلية.</li>
+            <li>المهام ومحاولاتها وتكاليف الخدمات.</li>
+            <li>المحادثات ودليل كل إجابة.</li>
+            <li>منتجات مساحة المذاكرة والامتحانات والمحاولات.</li>
+            <li>الاستخدام والحدود والتنبيهات وسجل قرارات الإدارة.</li>
+          </ul>
+        </section>
+
+        <section id="security">
+          <h2>13. الأمان والخصوصية</h2>
+          <ul class="checklist">
+            <li>قواعد الصلاحيات موجودة جوه قاعدة البيانات، مش مجرد إخفاء أزرار.</li>
+            <li>كل طالب يشوف بياناته ومحتوى دفعته فقط.</li>
+            <li>كل بحث يتأكد من صلاحية الطالب والمادة قبل ما يرجع أجزاء نص.</li>
+            <li>مفاتيح الخدمات وملفات المصادر الخاصة ماتروحش للمتصفح.</li>
+            <li>المصادر القديمة تفضل محفوظة كسجل تاريخي لكن ممكن تتوقف عن البحث الحالي.</li>
+            <li>أي قرار إداري مهم يتسجل: مين عمله، إمتى، وإيه اللي اتغير.</li>
+            <li>النسخ الاحتياطي واسترجاع البيانات بيتجربوا قبل تشغيل حقيقي واسع.</li>
+            <li>نصوص المصادر تتعامل كبيانات، وأي أمر مكتوب جواها مايقدرش يغير تعليمات النظام.</li>
+          </ul>
+        </section>
+
+        <section id="cost">
+          <h2>14. التكلفة والتوسع</h2>
+          <p>الهدف إن النسخة الأولى تشتغل بأقل موارد عملية، لكن من غير اختصار يخلينا نرمي الكود بعدين.</p>
+          <h3>تقليل التكلفة</h3>
+          <ul>
+            <li>استخدام ردود تجريبية أثناء تطوير الواجهة بدل خدمات مدفوعة.</li>
+            <li>تجميع عمليات الفهرسة بدل طلب منفصل لكل جزء.</li>
+            <li>عدم إعادة معالجة نفس الملف أو نفس الجزء من غير سبب.</li>
+            <li>إعادة استخدام منتج مذاكرة قديم فقط لو المصادر والإعدادات والصلاحيات مطابقة.</li>
+            <li>حد يومي لكل طالب وحد عام للطلبات المتزامنة.</li>
+            <li>حد أعلى لحجم الإجابة وعدد الأسئلة ومدة التسجيل.</li>
+            <li>تسجيل تكلفة كل عملية وتنبيه عند ٥٠٪ و٧٥٪ و٩٠٪ من الميزانية.</li>
+            <li>إيقاف الأعمال الاختيارية المدفوعة تلقائياً عند الوصول للحد النهائي.</li>
+          </ul>
+          <h3>التوسع بعد نجاح النسخة</h3>
+          <p>نزود عدد خوادم الواجهة، عدد عمال المعالجة، قوة قاعدة البيانات، مساحة التخزين، وحدود خدمات الذكاء الاصطناعي. لو البحث كبر جداً، نقدر نغير خدمته من خلال طبقة مخصصة من غير تغيير تجربة الطالب أو شكل البيانات الأساسي.</p>
+          <div class="callout good">
+            النسخة التجريبية المجانية مافيهاش دفع يدوي ولا إرسال إيصالات. الدفع الحقيقي يتعمل بعد نجاح الاختبار من خلال خدمة آلية وربط آلي للأحداث والمراجعة.
+          </div>
+        </section>
+
+        <section id="included">
+          <h2>15. إيه داخل النسخة الأولى وإيه مؤجل؟</h2>
+          <div class="grid">
+            <div class="card">
+              <h3>موجود في النسخة الأولى</h3>
+              <ul>
+                <li>موقع مناسب للموبايل.</li>
+                <li>حسابات وأدوار وصلاحيات.</li>
+                <li>طب بشري وبيطري.</li>
+                <li>ملفات كتب ومحاضرات وصوت.</li>
+                <li>حذف آلي للأصل بعد التحويل.</li>
+                <li>محادثة خاصة بكل مادة.</li>
+                <li>إجابات من المصادر فقط.</li>
+                <li>تلميحات الدكتور والتعارض والنقص.</li>
+                <li>مساحة مذاكرة وامتحانات.</li>
+                <li>لوحة إدارة وتشغيل آلي.</li>
+                <li>اختبار ١٠٠ طالب.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>مؤجل لما بعد نجاح النسخة</h3>
+              <ul>
+                <li>تطبيق موبايل منفصل.</li>
+                <li>إطلاق عام لجامعات كتير.</li>
+                <li>رفع الطالب لملفاته الشخصية.</li>
+                <li>معالجة الفيديو.</li>
+                <li>الدفع الحقيقي.</li>
+                <li>وصول الدكتور لمحادثات الطلبة.</li>
+                <li>تقديم علاج لمريض حقيقي.</li>
+                <li>بناء نموذج ذكاء اصطناعي من الصفر.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="roadmap">
+          <h2>16. مراحل التنفيذ</h2>
+          <details open><summary>المرحلة صفر — تحديد التجربة</summary><div><p>نختار دفعة الطب البشري والبيطري، مسؤول الدفعة، المواد، الحقوق، سياسة حذف الملفات، الميزانية، واختبارات الجودة والـ١٠٠ طالب.</p></div></details>
+          <details open><summary>المرحلة الأولى — الأساس القابل للإنتاج</summary><div><p>نبني الموقع، الحسابات، قاعدة البيانات، الصلاحيات، تقسيم الدراسة، بيئات التطوير والتجربة، الاختبارات، والنشر الآلي.</p></div></details>
+          <details open><summary>المرحلة الثانية — تجهيز المصادر آلياً</summary><div><p>نبني رفع الملفات، قراءة الكتب، القراءة الضوئية، تفريغ الصوت، تمييز كلام الدكتور، فحص الجودة، حذف الأصل، التقسيم، والفهرسة.</p></div></details>
+          <details open><summary>المرحلة الثالثة — المحادثة من المصادر</summary><div><p>نبني البحث الآمن، الإجابة المدعومة، النقص، التعارض، تلميحات الدكتور، والأسئلة الطبية التعليمية.</p></div></details>
+          <details open><summary>المرحلة الرابعة — مساحة المذاكرة</summary><div><p>نبني الملخصات، أدلة المذاكرة، الأسئلة، البطاقات، الامتحانات، الشرح، والتصحيح.</p></div></details>
+          <details open><summary>المرحلة الخامسة — الإدارة والتشغيل الآلي</summary><div><p>نكمل لوحات المتابعة، إعادة المحاولة، الفحص الدوري، التنبيهات، النسخ الاحتياطي، وخطط التعامل مع الأعطال.</p></div></details>
+          <details open><summary>المرحلة السادسة — إثبات الطب البيطري</summary><div><p>ندخل محتوى البيطري في نفس النظام ونتأكد إن مافيش افتراضات خاصة بالطب البشري أو تسريب بين البرامج.</p></div></details>
+          <details open><summary>المرحلة السابعة — تجربة ١٠٠ طالب</summary><div><p>ندخل الطلبة على مراحل، نقيس الجودة والسرعة والتكلفة، ونختبر الضغط والأعطال واستخدام الملفات في نفس الوقت.</p></div></details>
+          <details><summary>بعد نجاح النسخة</summary><div><p>نضيف دفع آلي، نزود الموارد حسب القياس، نضيف كلية جديدة، ونجهز معالج الفيديو من غير تغيير النظام الأساسي.</p></div></details>
+        </section>
+
+        <section id="quality">
+          <h2>17. شروط نجاح المشروع</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>الحاجة اللي بنقيسها</th><th>الشرط</th></tr></thead>
+              <tbody>
+                <tr><td>تسريب بين الطلبة أو الدفعات أو المواد</td><td>صفر حالات.</td></tr>
+                <tr><td>معلومة من غير مصدر في الإجابات المقبولة</td><td>صفر.</td></tr>
+                <tr><td>ربط الإجابات ومنتجات المذاكرة بأدلتها</td><td>١٠٠٪ داخلياً.</td></tr>
+                <tr><td>الاعتراف إن الإجابة مش موجودة</td><td>دقة ٩٥٪ على الأقل.</td></tr>
+                <tr><td>التعارضات المعروفة</td><td>كلها تعرض الرأيين.</td></tr>
+                <tr><td>استرجاع تلميحات الدكتور المباشرة</td><td>٩٥٪ على الأقل.</td></tr>
+                <tr><td>رفض الحالات التعليمية بالغلط</td><td>أقل ما يمكن؛ ٩٥٪ من الحالات المدعومة تتجاوب.</td></tr>
+                <tr><td>اكتمال تحويل الملفات والصوت</td><td>١٠٠٪ أو رفض واضح للمصدر.</td></tr>
+                <tr><td>حذف الملف الأصلي</td><td>١٠٠٪ بعد التحويل، وصفر حذف بدري.</td></tr>
+                <tr><td>التكرار بسبب إعادة المحاولة</td><td>صفر ملفات أو تكلفة أو استخدام مكرر.</td></tr>
+                <tr><td>التشغيل الطبيعي</td><td>صفر خطوات معالجة يدوية.</td></tr>
+                <tr><td>اختبار ١٠٠ طالب</td><td>من غير تسريب أو ضياع شغل أو طابور خارج السيطرة.</td></tr>
+                <tr><td>نجاح طلبات الموقع في اختبار الضغط</td><td>٩٩٪ على الأقل، بعيداً عن الرفض المقصود بسبب الحدود.</td></tr>
+                <tr><td>سرعة أول جزء من إجابة المحادثة</td><td>هدف متوسط أقل من ٥ ثواني، و٩٥٪ أقل من ١٢ ثانية.</td></tr>
+                <tr><td>التكلفة</td><td>جوه الحد اللي أحمد وزياد وافقوا عليه.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout block">
+            أي تسريب، معلومة طبية غير مدعومة، إخفاء تعارض، استخدام معرفة من بره المصادر، حذف ملف بدري، أو تكلفة بتتكرر بشكل ثابت يمنع إطلاق النسخة.
+          </div>
+        </section>
+
+        <section id="examples">
+          <h2>18. أمثلة كاملة توضح المنصة</h2>
+          <h3>مثال 1: الطالب بيسأل عن نقطة موجودة</h3>
+          <p>الطالب يفتح وحدة القلب ويسأل عن فرق موجود في كتاب المحاضرة. النظام يبحث جوه مصادر وحدة القلب فقط، يختار الأجزاء الداعمة، يجاوب، ويحفظ داخلياً الأجزاء اللي استخدمها.</p>
+          <h3>مثال 2: الدكتور قال تلميح في تسجيل</h3>
+          <p>الدكتور قال: «الجزء ده مهم في الامتحان». التسجيل اتفرغ واتعلم كتلميح. لما الطالب يسأل عن المهم، المنصة تقول إن الدكتور ركز على الجزء ده، وتوضح إنه تلميح من التسجيل مش ضمان.</p>
+          <h3>مثال 3: الإجابة مش موجودة</h3>
+          <p>الطالب يسأل سؤال مش موجود في أي ملف. المنصة تقول إن المصادر المرفوعة للمادة مافيهاش معلومات كفاية، وماتستخدمش الإنترنت ولا معلومات عامة عشان تكمل.</p>
+          <h3>مثال 4: مصدرين مختلفين</h3>
+          <p>كتاب بيذكر قاعدة، وتسجيل الدكتور يذكر استثناء مختلف. المنصة تعرض الاتنين وتقول إن المواد متعارضة، بدل ما تختار اللي يبدو أشهر.</p>
+          <h3>مثال 5: حالة طبية للمذاكرة</h3>
+          <p>الطالب يكتب حالة امتحان فيها أعراض ونتائج ويطلب التشخيص المتوقع. المنصة تتعامل معاها كسؤال تعليمي وتجاوب من المصادر، مش ترفض لمجرد وجود تشخيص وعلاج.</p>
+          <h3>مثال 6: مشكلة حقيقية</h3>
+          <p>المستخدم يقول إن الأعراض بتحصل له دلوقتي ويطلب علاج. المنصة توضح الحد التعليمي وتوجه لرعاية مناسبة، وما تتصرفش كأنها الطبيب المعالج.</p>
+          <h3>مثال 7: رفع ملف جديد</h3>
+          <p>مسؤول الدفعة يرفع ملف. النظام يفحصه، يحوله، يتأكد من جودته، يحذف الأصل، يفهرسه، ويعلّمه جاهز. المادة لا تظهر إلا لو الإدارة ناشراها والدفعة مفتوحة.</p>
+        </section>
+
+        <section id="future">
+          <h2>19. إيه اللي يحصل بعد نجاح المشروع؟</h2>
+          <h3>إضافة كليات ومراحل</h3>
+          <p>نضيف صيدلة وهندسة وغيرهم من خلال إعدادات وبيانات جديدة. وبعدها الثانوية العامة كمرحلة مختلفة، من غير ما نسميها كلية أو نغير أساس المنصة.</p>
+          <h3>الفيديو</h3>
+          <p>الفيديو هيدخل نفس خط المعالجة: يتفحص، يتسحب منه الصوت، الصوت يتفرغ، المحتوى يتحول لنفس النص المنظم، وبعد التأكد يتحذف الفيديو والصوت المؤقت. النص يدخل نفس مجموعة معرفة المادة. لو احتجنا بعدين، ممكن نستخرج الكتابة المهمة من الشرائح والصور.</p>
+          <h3>الدفع</h3>
+          <p>بعد نجاح النسخة المجانية، يتم اختيار خدمة دفع آلية. تأكيد الدفع وإضافة الرصيد والمراجعة والاسترجاع كلهم يكونوا آليين، من غير صور إيصالات وموافقة يدوية.</p>
+        </section>
+
+        <section id="terms">
+          <h2>20. معاني المصطلحات الضرورية</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>المصطلح</th><th>المعنى البسيط</th></tr></thead>
+              <tbody>
+                <tr><td><span class="en">PoC</span></td><td>نسخة تثبت إن الفكرة والمنتج والتشغيل ينفعوا في الواقع. هنا هي نسخة حقيقية مش عرض مؤقت.</td></tr>
+                <tr><td><span class="en">RAG</span></td><td>بحث في المصادر الأول، وبعدها كتابة إجابة منها فقط.</td></tr>
+                <tr><td><span class="en">Module</span></td><td>اسم الوحدة الدراسية في نظام الطب البشري غالباً.</td></tr>
+                <tr><td><span class="en">Subject</span></td><td>اسم المادة في أغلب الكليات التانية.</td></tr>
+                <tr><td><span class="en">Cohort</span></td><td>دفعة محددة مرتبطة بنسخة منهج وسنة وفصل دراسي.</td></tr>
+                <tr><td><span class="en">Batch Leader</span></td><td>مسؤول دفعة يرفع المصادر المطلوبة بصلاحية محدودة.</td></tr>
+                <tr><td><span class="en">Studio</span></td><td>مساحة إنشاء الملخصات والأدلة والأسئلة والبطاقات والامتحانات.</td></tr>
+                <tr><td><span class="en">Markdown</span></td><td>صيغة نص خفيفة ومنظمة بدل الاحتفاظ بالملف الكبير.</td></tr>
+                <tr><td><span class="en">Embedding</span></td><td>تمثيل رقمي يساعد النظام يبحث بالمعنى، مش بالكلمة فقط.</td></tr>
+                <tr><td><span class="en">Worker</span></td><td>برنامج خلفي ينفذ مهمة طويلة زي تفريغ الصوت أو تجهيز الملف.</td></tr>
+                <tr><td><span class="en">RLS</span></td><td>قواعد جوه قاعدة البيانات تمنع كل مستخدم من قراءة بيانات مش مسموحة ليه.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <footer>
+          الوثيقة دي شرح مبسط ومفصل للنطاق الحالي. المصدر التنفيذي هو الخطة الإنجليزية وملف خطوات التنفيذ.
+          <br><a class="top-link" href="#idea">ارجع لأول الشرح</a>
+        </footer>
+      </article>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const body = document.body;
+      const progress = document.getElementById("progressBar");
+      const savedTheme = localStorage.getItem("unimind-ar-theme");
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (savedTheme === "dark" || (!savedTheme && prefersDark)) root.dataset.theme = "dark";
+
+      let scale = Number(localStorage.getItem("unimind-ar-scale") || "1");
+      const applyScale = () => root.style.setProperty("--scale", String(scale));
+      applyScale();
+
+      document.getElementById("fontUp").addEventListener("click", () => {
+        scale = Math.min(1.3, Math.round((scale + .1) * 10) / 10);
+        localStorage.setItem("unimind-ar-scale", String(scale));
+        applyScale();
+      });
+      document.getElementById("fontDown").addEventListener("click", () => {
+        scale = Math.max(.85, Math.round((scale - .1) * 10) / 10);
+        localStorage.setItem("unimind-ar-scale", String(scale));
+        applyScale();
+      });
+      document.getElementById("themeButton").addEventListener("click", () => {
+        root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+        localStorage.setItem("unimind-ar-theme", root.dataset.theme);
+      });
+      document.getElementById("printButton").addEventListener("click", () => window.print());
+      document.getElementById("menuButton").addEventListener("click", () => body.classList.toggle("menu-open"));
+      document.querySelectorAll(".toc a").forEach(link => link.addEventListener("click", () => body.classList.remove("menu-open")));
+
+      const updateProgress = () => {
+        const max = document.documentElement.scrollHeight - innerHeight;
+        progress.style.width = (max > 0 ? scrollY / max * 100 : 0) + "%";
+      };
+      addEventListener("scroll", updateProgress, { passive: true });
+      updateProgress();
+
+      const links = new Map([...document.querySelectorAll(".toc a")].map(a => [a.getAttribute("href").slice(1), a]));
+      const observer = new IntersectionObserver(entries => {
+        entries.filter(entry => entry.isIntersecting).forEach(entry => {
+          links.forEach(link => link.classList.remove("active"));
+          links.get(entry.target.id)?.classList.add("active");
+        });
+      }, { rootMargin: "-16% 0px -72% 0px" });
+      document.querySelectorAll("section[id]").forEach(section => observer.observe(section));
+    })();
+  </script>
+</body>
+</html>

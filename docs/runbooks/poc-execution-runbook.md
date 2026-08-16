@@ -1,6 +1,6 @@
 # UniMind PoC: Detailed Execution Runbook
 
-**Companion to:** `UniMind_PoC_Master_Plan.md`
+**Companion to:** [UniMind PoC master plan](../plans/poc-master-plan.md)
 
 **Owners:** Ahmed and Ziad
 

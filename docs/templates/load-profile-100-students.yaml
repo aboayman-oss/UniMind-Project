@@ -1,0 +1,56 @@
+schema_version: 1
+profile_id: unimind-100-student-v1
+dataset_version: FILL_ME
+random_seed: 20260816
+target_environment: FILL_ME_NON_PRODUCTION
+hard_abort:
+  leakage_events: 0
+  duplicate_settlements: 0
+  lost_accepted_jobs: 0
+  maximum_cost: FILL_ME
+phases:
+  - name: warm_up
+    duration: FILL_ME
+    virtual_users: FILL_ME
+    arrival_rate_per_second: FILL_ME
+    actions: {}
+  - name: realistic_ramp
+    duration: FILL_ME
+    virtual_users: 100
+    arrival_rate_per_second: FILL_ME
+    actions:
+      login_catalog: 100
+      subject_open: 100
+      chat_submit: 300
+      studio_request: 50
+      quiz_attempt: 100
+      feedback: 50
+  - name: peak_burst
+    duration: FILL_ME
+    virtual_users: FILL_ME
+    arrival_rate_per_second: FILL_ME
+    actions: {}
+  - name: ingestion_and_failure_overlap
+    duration: FILL_ME
+    virtual_users: FILL_ME
+    arrival_rate_per_second: FILL_ME
+    actions:
+      pdf_ingestion: 1
+      audio_ingestion: 1
+      provider_slowdown: 1
+      worker_termination: 1
+  - name: cooldown_and_reconciliation
+    duration: FILL_ME
+    virtual_users: 0
+    arrival_rate_per_second: 0
+    actions: {}
+thresholds:
+  interactive_success_rate: 0.99
+  chat_first_token_p50_ms: 5000
+  chat_first_token_p95_ms: 12000
+  maximum_queue_age_ms: FILL_ME
+  maximum_unsettled_reservations_after_cooldown: 0
+  maximum_leakage_events: 0
+  maximum_duplicate_business_events: 0
+  maximum_total_cost: FILL_ME
+

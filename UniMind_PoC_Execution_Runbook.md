@@ -8,6 +8,282 @@
 
 **Rule:** Complete work in dependency order and attach the listed exit evidence before marking a package complete.
 
+**Runbook revision:** 2.0 — executable tutorial edition
+
+## 0. How to execute this runbook
+
+This document is both the build tutorial and the release checklist. Read the short control sections below once, then execute the numbered work packages in order. A work package is not complete because code exists or a screen looks correct. It is complete only when every required task is checked, every automated gate passes, and its evidence bundle is reviewed.
+
+### 0.1 Status legend
+
+Use these markers in the working copy or project tracker:
+
+- `[ ]` not started.
+- `[~]` in progress; add the owner and branch/PR beside it.
+- `[?]` blocked by a named decision or external dependency; link the blocking record.
+- `[x]` complete and linked to evidence.
+- `[!]` failed gate or release blocker; link the incident or defect.
+- `N/A` only when the master plan explicitly excludes the item and the gate reviewer records why.
+
+Never turn `[ ]` directly into `[x]`. The executor first marks `[~]`, performs the work and verification, attaches evidence, and then asks the gate reviewer to mark `[x]`.
+
+### 0.2 Roles and the two-person rule
+
+Assign both names before starting a package:
+
+| Role | Responsibility | May be the same person? |
+| --- | --- | --- |
+| Executor | Implements the task, runs the checks, and assembles evidence. | Yes, across ordinary tasks. |
+| Gate reviewer | Re-runs or inspects the gate and confirms that evidence is sufficient. | No for RLS, raw deletion, rights, budget kill switches, release/unlock, or beta go-live. |
+| Product decision owner | Resolves scope, cohort, terminology, retention, and UX decisions. | Ahmed or Ziad as recorded in the decision log. |
+| Security/data owner | Approves access policy, rights, retention, takedown, and incident decisions. | Must be explicitly named. |
+| Academic reviewer | Judges source completeness, conflicts, grounding, and educational-case quality. | Must not be replaced by an automated score. |
+
+For every work session, write the executor, reviewer, work package, branch, intended evidence, and hard-stop conditions at the top of the session note.
+
+### 0.3 Definition of ready for any task
+
+Do not start a task until all applicable statements are true:
+
+- [ ] Its dependencies in the delivery-order table are complete.
+- [ ] The expected output is named as a file, migration, route, report, deployment, or decision record.
+- [ ] Required inputs and test fixtures exist and contain no unapproved private data.
+- [ ] Open decisions that change the implementation are resolved, or the task uses a documented mock/interface that does not prejudge them.
+- [ ] The executor knows which paid calls, destructive actions, migrations, or external releases are prohibited.
+- [ ] The verification command and passing result are known.
+- [ ] The rollback or disable action is known for any shared-environment change.
+
+### 0.4 Definition of done for any task
+
+A task may be marked complete only when all applicable statements are true:
+
+- [ ] The implementation is committed on a reviewable branch with no unrelated changes.
+- [ ] Lint, type checking, relevant unit/integration/security tests, and the production build pass.
+- [ ] A migration resets successfully from an empty local database and upgrades a populated fixture database.
+- [ ] Authorization was tested as an allowed role and at least one forbidden role.
+- [ ] Retryable work was replayed with the same idempotency key and created no duplicate state or charge.
+- [ ] Logs contain the correlation ID and safe diagnostics, but no secret, raw private content, or ordinary chat content.
+- [ ] Documentation, environment schema, fixtures, and generated database types were updated where affected.
+- [ ] The evidence bundle exists at the required path and identifies commit SHA, environment, executor, reviewer, time, commands, and outcome.
+- [ ] The reviewer inspected the evidence and the exit gate is green.
+
+### 0.5 Evidence storage and naming
+
+Store durable proof in the repository when it contains no secret or private data. Store sensitive exports in the approved restricted evidence store and commit only a redacted index.
+
+Use this repository structure:
+
+```text
+docs/
+  adr/                         # Architecture decision records.
+  decisions/                   # Product/provider/policy decisions.
+  policies/                    # Rights, retention, deletion, privacy, safety.
+  runbooks/                    # Exercised incident and recovery procedures.
+  templates/                   # Copy-first forms referenced by this runbook.
+evidence/
+  README.md                    # Rules and links to restricted evidence.
+  wp00-pilot/
+  wp01-foundation/
+  wp02-database/
+  wp03-product-shell/
+  wp04-ingestion/
+  wp05-retrieval/
+  wp06-chat/
+  wp07-studio/
+  wp08-operations/
+  wp09-load-cost/
+  wp10-veterinary/
+  wp11-beta/
+  wp12-extensions/
+```
+
+Name an evidence bundle `YYYY-MM-DD_<gate>_<environment>_<short-sha>.md`. Each bundle must contain:
+
+1. Scope and exact acceptance criteria.
+2. Commit SHA and migration list.
+3. Environment and non-secret configuration fingerprint.
+4. Commands executed and their exit codes.
+5. Summary metrics and links to raw machine-readable reports.
+6. Failures, deviations, and linked defects.
+7. Executor and independent reviewer sign-off.
+8. Rollback/disable instruction.
+
+Never commit `.env*`, access tokens, private raw files, student exports, full chat transcripts, provider request payloads containing source content, or unredacted production logs.
+
+### 0.6 Approved architecture baseline versus open decisions
+
+The following baseline is authoritative because it is already approved by the master plan:
+
+| Area | Locked direction |
+| --- | --- |
+| Web | Next.js App Router, TypeScript, React Server Components by default. |
+| Mutations | Server Actions for ordinary authenticated mutations; Route Handlers for streaming, uploads, provider callbacks, and webhooks. |
+| Runtime | Node.js, not Edge, for provider SDKs, streaming, and processing unless a measured route proves Edge-compatible. |
+| Database/auth | Supabase Auth and PostgreSQL with RLS and explicit grants. |
+| Retrieval | PostgreSQL full-text search plus pgvector behind one server-authorized retrieval function/adapter. |
+| Business state | PostgreSQL is authoritative for jobs, reservations, budgets, release state, provenance, and audit. |
+| Storage | Private temporary-raw and durable-processed namespaces behind an adapter. |
+| Processing | Independently deployable durable workers with leases, heartbeats, retries, and reconciliation. |
+| AI boundary | Approved uploaded material only; no web-search or outside-answer branch. |
+| Beta | Free controlled beta; no payment receipt or manual payment workflow. |
+
+These are deliberately unresolved and must be closed in work package 0 before their real adapters are enabled:
+
+| Decision | Placeholder behavior until approved | Blocking effect |
+| --- | --- | --- |
+| Exact Human and Veterinary cohorts | Synthetic catalog fixtures. | Blocks real source processing and invitation. |
+| Generation, embedding, OCR, and transcription providers/models | Deterministic mocks. | Blocks paid calls and final embedding schema dimensions. |
+| Queue transport and worker host | Database job table plus in-process test dispatcher. | Blocks always-on deployment, not domain implementation. |
+| Raw and processed object-storage provider | Filesystem/in-memory test adapter using synthetic data only. | Blocks private source upload. |
+| Total/weekly/action budgets | Zero-paid-work feature flags. | Blocks paid provider enablement. |
+| Retention periods and deletion deadlines | Short synthetic-test values only. | Blocks real user/source data. |
+| Notification and incident channels | Local test sink. | Blocks beta go-live. |
+
+Do not hide one of these choices inside source code. Close it using `docs/templates/decision-record.md`, update the master-plan decision log, and record the configuration key used by the adapter.
+
+### 0.7 Current platform facts that affect this implementation
+
+Verify these again on the day the foundation is created or upgraded:
+
+- Use Node.js 24 LTS for the initial baseline and pin an exact supported patch in `.nvmrc` and `package.json#engines`. Node.js 20 is end-of-life; do not copy older Next.js tutorials that still select it.
+- Next.js currently requires Node.js 20.9 or newer. Use App Router and the project-local package manager lockfile.
+- Install the Supabase CLI as a pinned development dependency and invoke it as `pnpm supabase`; do not assume a globally installed CLI.
+- New Supabase projects may not expose newly created `public` tables to the Data API automatically. RLS and SQL `GRANT` are separate requirements; test both.
+- Do not pin a version in `CREATE EXTENSION`; Supabase ignores/deprecates explicit extension versions. Record the installed version in evidence instead.
+- Use `@supabase/ssr` for Next.js cookie-based sessions. A publishable key may be public; secret/service-role keys are server-only.
+- Prefer HNSW for the first pgvector index, but benchmark it against exact search on the frozen dataset. The operator class must match the query distance operator.
+- Supabase database backups do not include Storage objects. Processed objects need their own durability/restore proof.
+
+Authoritative references:
+
+- [Node.js release status](https://nodejs.org/en/about/previous-releases)
+- [Next.js installation and system requirements](https://nextjs.org/docs/app/getting-started/installation)
+- [Supabase CLI local development](https://supabase.com/docs/guides/local-development/cli/getting-started)
+- [Supabase local development workflow](https://supabase.com/docs/guides/local-development/cli-workflows)
+- [Supabase RLS guidance](https://supabase.com/docs/guides/database/postgres/row-level-security)
+- [Supabase server package selection](https://supabase.com/docs/guides/auth/choosing-a-server-package)
+- [Supabase vector indexes](https://supabase.com/docs/guides/ai/vector-indexes)
+- [Supabase breaking-change feed](https://supabase.com/changelog?types=breaking-change)
+
+### 0.8 Workstation preflight (Windows/PowerShell)
+
+Run these commands from the repository root. Do not continue until every check is green:
+
+```powershell
+git --version
+node --version
+corepack --version
+docker version
+git status --short
+```
+
+Expected result:
+
+- Git is installed.
+- Node begins with `v24.` and is the exact patch recorded in `.nvmrc` once that file exists.
+- Corepack is available.
+- A Docker-compatible engine can run Linux containers for the local Supabase stack.
+- `git status --short` is empty or every existing change has a known owner and is outside the intended work.
+
+If Node is missing or wrong, install the approved Node 24 LTS patch using the team's chosen Windows version manager, reopen PowerShell, and repeat the check. If Docker is unavailable, foundation work may continue only on docs/UI mocks; database migrations and RLS tasks remain blocked.
+
+Then prepare the pinned package manager after `package.json` exists:
+
+```powershell
+corepack enable
+corepack install
+pnpm --version
+```
+
+Do not run `npm install` in a pnpm repository. If an accidental `package-lock.json` appears, stop, identify why it was created, and remove it only after confirming it is not an intentional user change.
+
+### 0.9 Exact branch, review, and delivery loop
+
+For every independently reviewable slice:
+
+1. Update local main without discarding local work.
+2. Create a branch named `wpNN/short-outcome`, for example `wp02/catalog-rls`.
+3. Copy the applicable gate template to the evidence folder and leave its status `IN PROGRESS`.
+4. Implement the smallest end-to-end slice, including migration, service, UI, test, and telemetry where applicable.
+5. Run the focused test after each meaningful change.
+6. Before review, run the full local gate:
+
+```powershell
+pnpm format:check
+pnpm lint
+pnpm typecheck
+pnpm test:unit
+pnpm test:integration
+pnpm test:security
+pnpm supabase db reset
+pnpm db:types:check
+pnpm build
+```
+
+7. Record command results in the evidence bundle; never paste secrets or private content.
+8. Review the diff for accidental scope and secret exposure:
+
+```powershell
+git status --short
+git diff --check
+git diff --stat
+git diff
+```
+
+9. Commit using an outcome-oriented message such as `feat(catalog): enforce released unit availability`.
+10. Open a pull request that links the work-package task and evidence bundle.
+11. The independent reviewer re-runs the security/raw-deletion/release gates where applicable.
+12. Merge only when required checks are green. Never repair preview or beta manually after merge; add a migration/configuration change and redeploy.
+
+If any command above does not exist yet, creating that script is part of work package 1. Before package 1 is complete, `pnpm verify` must run the complete local gate in the correct order.
+
+### 0.10 Required task record format
+
+Every atomic implementation task added to an issue or session note must use this format:
+
+```text
+Task ID: WPXX-TYY
+Outcome: Student A cannot read Student B's chat rows.
+Owner: <name>
+Reviewer: <name>
+Dependencies: <earlier task IDs>
+Inputs: migration names, fixture users, policy decision
+Files: exact expected files
+Steps: ordered implementation actions
+Verify: exact command/test name
+Pass: observable expected result
+Evidence: expected evidence path
+Rollback: migration/flag/disable action
+Hard stop: conditions that prohibit continuation
+```
+
+An issue titled only “set up database,” “build RAG,” or “finish admin” is not executable and must be decomposed before work begins.
+
+### 0.11 Gate review procedure
+
+At the end of every package:
+
+1. Freeze the candidate commit SHA.
+2. Deploy or reset the package's target environment from version control.
+3. Run the package gate from a clean state.
+4. Run at least one negative/forbidden path and one retry/recovery path.
+5. Compare measured results with numeric thresholds; do not substitute “looks good.”
+6. Record every deviation as a defect, risk acceptance, or decision. Release blockers cannot be waived informally.
+7. Reviewer writes `PASS`, `FAIL`, or `CONDITIONAL PASS` with an expiry and linked follow-up.
+8. Mark package tasks `[x]` only after `PASS`. A conditional pass never permits a later dependent package that needs the missing behavior.
+
+### 0.12 Global rollback hierarchy
+
+Use the least destructive safe control first:
+
+1. Disable the affected provider, artifact type, source version, cohort release, or feature flag.
+2. Stop new job claims while preserving queued records.
+3. Roll back the stateless web/worker deployment to the last known-good build.
+4. Apply a forward database repair migration. Do not use destructive rollback on a shared database without an exercised plan.
+5. Restore into an isolated environment, verify, and only then perform a production restore when required.
+
+Never delete audit, provenance, job-attempt, raw-deletion, provider-cost, or usage-ledger evidence to make a retry “clean.” Corrections are new append-only events.
+
 ## 1. Implementation rules
 
 1. Treat the PoC as the first production release. Do not create disposable architecture, local-only business processes, or data models that must be replaced to scale.
@@ -49,6 +325,111 @@
 Do not start Studio generation before retrieval and strict-RAG answer contracts pass. Do not begin the 100-student beta before fault recovery, quotas, and cost kill switches pass.
 
 ## 3. Work package 0: Pilot decision pack
+
+**Outcome:** every real-data, provider, budget, retention, academic, and load assumption required by later packages is either approved or explicitly blocked. This package produces decisions and fixtures; it does not call a paid provider or process real private content.
+
+**Primary artifacts:** `docs/decisions/`, `docs/policies/`, `planning/`, `evals/datasets/`, and `evidence/wp00-pilot/`.
+
+### 3.0 Tutorial procedure
+
+#### WP00-T01 — Create the planning workspace
+
+- [ ] Create `docs/decisions`, `docs/policies`, `planning`, `evals/datasets/tutor`, `evals/datasets/studio`, and `evidence/wp00-pilot`.
+- [ ] Copy the decision, rights, policy, dataset, load, and gate templates from `docs/templates` rather than creating unstructured notes.
+- [ ] Create `planning/decision-register.md` with one row per master-plan decision and columns `ID`, `decision`, `owner`, `due`, `status`, `record`, `blocks`, and `last reviewed`.
+- [ ] Copy D-01 through D-16 from the master plan. Keep approved directions approved; do not silently reopen them.
+- [ ] Add any implementation choice discovered during this package as D-17 onward.
+- [ ] Verify every `Open` or `Proposed` decision names the exact work-package tasks it blocks.
+
+**Pass:** a reviewer can open one register and identify all open decisions, owners, deadlines, and blocked work.
+
+**Evidence:** `evidence/wp00-pilot/<date>_decision-register_local_<sha>.md`.
+
+#### WP00-T02 — Select cohorts using evidence, not preference
+
+- [ ] Create `planning/cohort-candidates.csv` using UTF-8 and stable candidate IDs such as `HM-C01` and `VM-C01`.
+- [ ] Enter every candidate cohort before scoring. Do not add a favored cohort after seeing totals without recording the late addition.
+- [ ] Score each dimension 0-5 using written anchors: `0 = absent/blocking`, `1 = very weak`, `2 = weak`, `3 = adequate`, `4 = strong`, `5 = complete/verified`.
+- [ ] Add a `score_evidence` link for every score of 4 or 5 and a `remediation` field for every 0-2.
+- [ ] Have Ahmed and Ziad score independently, then reconcile differences of two or more points in a recorded review.
+- [ ] Reject a cohort regardless of total score if rights to provider processing/student use are denied, no accountable academic reviewer exists, or complete-enough source material is unavailable.
+- [ ] Create `docs/decisions/D-01-human-medicine-cohort.md` and `D-02-veterinary-medicine-cohort.md` from the decision template.
+- [ ] Assign stable catalog codes for institution, program, level, term, cohort, curriculum edition, and every unit. Codes are ASCII `lower_snake_case`; labels may be Arabic/English.
+- [ ] Obtain owner and reviewer sign-off.
+
+**Pass:** each selected cohort has a reproducible score, mandatory fields, ordered unit list, named Batch Leader, named academic reviewer, and no blocking right.
+
+#### WP00-T03 — Inventory sources and prove rights
+
+- [ ] Create `planning/source-rights-inventory.csv` from the template; one row represents one expected source, not a folder or informal collection.
+- [ ] Assign an opaque source candidate ID such as `SRC-HM-0001`; do not place personal names in filenames when a contributor label is sufficient.
+- [ ] Record rights as separate enumerated fields: `temporary_storage`, `provider_processing`, `processed_retention`, `student_derivatives`, and `future_commercial_use` with values `GRANTED`, `DENIED`, `UNKNOWN`, or `NOT_APPLICABLE`.
+- [ ] Link permission evidence and record who verified it and when. A chat message or verbal statement is not summarized as broader permission than it contains.
+- [ ] Flag patient/personal data, third-party copyrighted material, original exams, duplicate editions, password protection, scan quality, handwritten pages, tables/diagrams, and mixed-language audio.
+- [ ] Estimate pages, duration, and bytes, then calculate the maximum preflight provider cost using the benchmark worksheet once pricing is known.
+- [ ] Set `processing_eligible = false` whenever a required right is not `GRANTED`.
+- [ ] Have the security/data owner review every real candidate before any upload.
+
+**Pass:** row count matches the expected source manifest; no eligible row contains a required `UNKNOWN`/`DENIED` right; evidence links are reachable by the designated reviewers.
+
+#### WP00-T04 — Approve raw and processed data policy
+
+- [ ] Copy `docs/templates/raw-data-policy.md` to `docs/policies/raw-data-lifecycle.md`.
+- [ ] Fill exact durations; words such as “temporary,” “soon,” and “reasonable” are invalid without a number and starting event.
+- [ ] Define `delete_after` calculation, legal/rights hold authority, failed-conversion behavior, deletion verification, retry intervals, overdue severity, retained metadata, and takedown behavior.
+- [ ] Define the minimum accepted output separately for native PDF, scanned PDF, and audio.
+- [ ] State whether temporary normalized audio/OCR images may exist, where, and when they are deleted.
+- [ ] State that database backup does not back up Supabase Storage and define processed-object durability independently.
+- [ ] Write a data-flow diagram naming every storage location and external processor that can receive raw or processed content.
+- [ ] Review the policy against the rights inventory; remove any provider/storage path not covered by permission.
+- [ ] Record approval in D-09 and D-10.
+
+**Pass:** given any source state, the executor can determine whether raw data must be retained, deleted, retried, quarantined, or held, and who can authorize the exceptional state.
+
+#### WP00-T05 — Freeze evaluation data before provider selection
+
+- [ ] Create version directories `evals/datasets/tutor/v1` and `evals/datasets/studio/v1`.
+- [ ] Add JSON Schema files for tutor cases, Studio cases, and dataset manifests.
+- [ ] Add a manifest containing dataset version, creation date, source-scope fingerprint, authors, reviewer, case counts by category, and SHA-256 of each JSONL file.
+- [ ] Use stable case IDs and never renumber an existing case; supersede it with a new version.
+- [ ] Create synthetic fixtures first so runners can be built without rights-approved material.
+- [ ] Add real evaluation cases only in the approved restricted repository/store if they reproduce private source text.
+- [ ] Run schema validation, duplicate-ID detection, category-count validation, and required/forbidden-claim validation.
+- [ ] Have the academic reviewer sign the manifest before a real provider benchmark.
+
+**Pass:** the frozen suite meets every minimum count, validates automatically, has no duplicate IDs, and cannot be changed without a version/hash change.
+
+#### WP00-T06 — Freeze budget and provider enablement rules
+
+- [ ] Copy `docs/templates/provider-benchmark.csv` and `docs/templates/decision-record.md` for D-04 and D-05.
+- [ ] Record currency and exchange-rate policy; never compare providers using mixed currencies without a dated conversion rate.
+- [ ] Fill total PoC, weekly, provider/action, source preflight, per-user daily, and single-request hard caps.
+- [ ] Name the people who may enable paid work and the two-person approval required for raising a hard cap.
+- [ ] Define alerts at 50/75/90%, hard-block behavior at 100%, settlement after provider timeouts, and treatment of already-accepted jobs.
+- [ ] Default every real adapter flag to false and set mock adapters as the only enabled providers.
+- [ ] Define a zero-cost smoke path that proves the application still behaves coherently when every paid provider is disabled.
+
+**Pass:** a reviewer can trace a request from reservation through provider call to cost ledger and determine the exact automatic action at every threshold.
+
+#### WP00-T07 — Make the 100-student workload reproducible
+
+- [ ] Copy the load-profile template to `planning/load-profile-100-students.yaml`.
+- [ ] Define named phases: warm-up, realistic ramp, peak academic burst, background-ingestion overlap, provider slowdown, worker death, cooldown, and reconciliation.
+- [ ] Specify duration, virtual users, arrival rate, think-time distribution, request mix, payload size, and concurrency for every phase.
+- [ ] Give each synthetic cohort/unit a unique canary phrase for leakage detection.
+- [ ] Define success thresholds for HTTP success, first token, full response, queue age, job completion, database connections, unsettled reservations, duplicates, leakage, and total cost.
+- [ ] Define abort thresholds that protect the environment and provider budget.
+- [ ] Record the random seed and dataset version so repeated runs are comparable.
+
+**Pass:** another executor can reproduce the same scenario without asking what “100 concurrent students” means.
+
+#### WP00-T08 — Run the package gate
+
+- [ ] Use `docs/templates/gate-report.md` to create the WP00 gate report.
+- [ ] Check every artifact for owner, reviewer, status, version, and link integrity.
+- [ ] Confirm no paid provider call, private source upload, raw deletion, or student invitation occurred.
+- [ ] Update the master-plan decision log and this runbook when an approved decision changes a requirement.
+- [ ] Reviewer records `PASS` only when all later-package blockers are explicit.
 
 ### 3.1 Select exact pilot cohorts
 
@@ -166,6 +547,216 @@ Define the reproducible 100-student scenario with exact durations and arrival ra
 
 ## 4. Work package 1: Repository, environments, and delivery controls
 
+**Outcome:** any developer can clone the repository onto a supported workstation, start a deterministic local stack, run mocked end-to-end behavior, reset the database, and pass one verification command. Preview and beta are isolated and deploy from version control.
+
+**Primary artifacts:** root configuration, `src/`, `workers/`, `supabase/`, `.github/workflows/`, `.env.example`, `docs/adr/`, and `evidence/wp01-foundation/`.
+
+### 4.0 Tutorial procedure
+
+#### WP01-T01 — Pin the runtime and initialize the root application
+
+The repository already contains planning documents, so do not run a scaffold command that expects an empty directory. Initialize the application in place.
+
+- [ ] Confirm work package 0 passed and the working tree contains no unknown edits.
+- [ ] Record the latest supported Node 24 LTS patch from the official release page in `.nvmrc` and `package.json#engines.node`.
+- [ ] Initialize `package.json` only if it does not exist:
+
+```powershell
+pnpm init
+```
+
+- [ ] Pin the package manager using Corepack, then confirm `packageManager` contains an exact version rather than a range:
+
+```powershell
+corepack use pnpm@latest-10
+pnpm --version
+```
+
+- [ ] Install the application runtime dependencies and commit the lockfile:
+
+```powershell
+pnpm add next@latest react@latest react-dom@latest zod @supabase/supabase-js @supabase/ssr
+pnpm add -D typescript @types/node @types/react @types/react-dom eslint eslint-config-next prettier prettier-plugin-tailwindcss vitest @vitest/coverage-v8 playwright tsx supabase
+```
+
+- [ ] After installation, replace `latest` resolution with the exact versions written to `package.json`; never leave wildcard ranges.
+- [ ] Add `dev`, `build`, `start`, `lint`, `typecheck`, `format`, `format:check`, `test:unit`, `test:integration`, `test:security`, `test:e2e`, `test:eval`, `test:load`, `db:start`, `db:stop`, `db:reset`, `db:types`, `db:types:check`, and `verify` scripts.
+- [ ] Create strict `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `.prettierrc.json`, `.prettierignore`, and `next-env.d.ts` using current framework conventions.
+- [ ] Set `typescript.strict = true`; do not weaken build errors or ESLint errors to obtain a green build.
+- [ ] Add a minimal `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/loading.tsx`, `src/app/not-found.tsx`, `src/app/global-error.tsx`, and `src/app/globals.css`.
+- [ ] Default pages/layouts to Server Components. Add `'use client'` only at an interaction boundary and keep serializable props across that boundary.
+- [ ] Make `error.tsx`/`global-error.tsx` Client Components; `global-error.tsx` must render its own `<html>` and `<body>`.
+- [ ] Treat dynamic `params`, `searchParams`, `cookies()`, and `headers()` as asynchronous under current Next.js conventions and await them.
+- [ ] Keep API `route.ts` files under distinct API segments; a `route.ts` and `page.tsx` cannot serve the same segment.
+- [ ] Call `redirect`, `notFound`, `forbidden`, and `unauthorized` outside ordinary `try/catch`, or rethrow Next.js navigation errors correctly.
+- [ ] Use the Node.js runtime for route handlers unless a task contains an explicit Edge compatibility test.
+
+**Verify:**
+
+```powershell
+pnpm lint
+pnpm typecheck
+pnpm build
+```
+
+**Pass:** all commands exit 0, `.next` is ignored, and a clean install from `pnpm-lock.yaml` produces the same dependency graph.
+
+#### WP01-T02 — Create boundaries and dependency rules
+
+- [ ] Create every directory listed in section 4.2 plus `src/lib/config`, `src/lib/db`, `src/lib/http`, `src/lib/validation`, `src/lib/feature-flags`, `src/lib/testing`, `workers/shared`, and `tests/fixtures`.
+- [ ] Add a short `README.md` inside each top-level domain directory stating its public interface, allowed dependencies, prohibited dependencies, and owner.
+- [ ] Enforce these directions: UI -> application service -> domain/adapter interface; provider adapters may depend on SDKs; domain modules may not import React, Next.js request objects, or provider SDKs.
+- [ ] Keep server-only modules under a `server` filename/folder convention and import `server-only` where accidental client bundling would expose credentials or privileged behavior.
+- [ ] Add an architectural lint/test that fails if a Client Component imports a server-only module or service-role client.
+- [ ] Place shared Zod request/response schemas next to domain contracts, not duplicated across UI and route handlers.
+
+**Pass:** a dependency-boundary test demonstrates that business rules can be executed in Vitest without booting Next.js.
+
+#### WP01-T03 — Create and validate the environment contract
+
+- [ ] Create `.env.example` with names and safe comments only; values are blank or clearly fake.
+- [ ] Create `src/lib/config/env.server.ts` and `env.client.ts`. Parse once with Zod and fail fast with variable names but never values.
+- [ ] Only the Supabase URL, publishable key, safe public release identifier, and public telemetry toggle may use `NEXT_PUBLIC_`.
+- [ ] Use server-only names for database secret/service-role key, raw/processed storage credentials, queue signing secrets, and provider keys.
+- [ ] Define `PROVIDER_MODE=mock` as the default and require both a provider-specific enable flag and a nonzero approved budget before a real adapter initializes.
+- [ ] Add maximum message length, upload bytes, audio duration, output tokens, request timeout, provider concurrency, retry count, and quota variables with numeric bounds.
+- [ ] Add a test that builds with safe CI placeholders and a test that fails on missing, malformed, or accidentally public secret variables.
+- [ ] Create `.env.local` manually for local secrets and confirm it is ignored before entering any value.
+
+**Pass:** `pnpm test:unit -- env` proves valid, missing, malformed, and forbidden-public cases; `pnpm build` succeeds with safe CI placeholders.
+
+#### WP01-T04 — Start versioned Supabase local development
+
+- [ ] Confirm Docker is healthy and discover the installed CLI rather than relying on remembered syntax:
+
+```powershell
+pnpm supabase --version
+pnpm supabase --help
+pnpm supabase init
+pnpm supabase start
+```
+
+- [ ] Commit `supabase/config.toml`; keep local generated state and secrets ignored.
+- [ ] Treat the local stack as development-only: do not expose it to the network or place real student/source data in it.
+- [ ] Create migrations using `pnpm supabase migration new <descriptive_name>`; do not invent timestamp filenames.
+- [ ] Enable required extensions without an explicit version clause. Begin with `vector`, `pgcrypto`, and only the text-search helper extensions actually used by the selected design.
+- [ ] Keep custom tables/functions out of `auth`, `storage`, and `realtime` schemas.
+- [ ] Add `supabase/seed.sql` containing only synthetic catalog/users/source text and leakage canaries.
+- [ ] Create a reset script that starts the stack if needed, resets migrations/seed, runs database tests, generates types, and reports failure.
+- [ ] Record installed PostgreSQL and extension versions in the foundation evidence.
+
+**Verify:**
+
+```powershell
+pnpm supabase db reset
+pnpm supabase migration list --local
+pnpm db:types
+git diff --exit-code -- src/types/database.generated.ts
+```
+
+**Pass:** reset works twice in succession; generated types are stable; no dashboard-only schema change is required.
+
+#### WP01-T05 — Implement safe Supabase clients and auth refresh
+
+- [ ] Create `src/lib/db/supabase/browser.ts` using the publishable key only.
+- [ ] Create `src/lib/db/supabase/server.ts` using `@supabase/ssr` and the current Next.js cookie API.
+- [ ] Create `src/lib/db/supabase/admin.ts` as server-only; expose narrow privileged functions instead of exporting the raw service client widely.
+- [ ] Implement the current Supabase SSR session-refresh pattern in the current Next.js request interception convention. In Next.js 16+, follow the `proxy.ts` convention rather than copying old `middleware.ts` tutorials.
+- [ ] Protect server mutations with verified user identity and database authorization; do not trust `getSession()` or client-supplied role/cohort values as authorization proof.
+- [ ] Never authorize from user-editable `user_metadata`. Store role/membership truth in protected database rows or safe app metadata with freshness considerations.
+- [ ] Add tests that inspect browser bundles and serialized props for secret/service-role values.
+
+**Pass:** sign-in state reaches Server Components and authenticated mutations, a forged cookie/role fails, and no privileged key is present in client output.
+
+#### WP01-T06 — Implement provider interfaces and deterministic mocks
+
+- [ ] Create one file per interface listed in section 4.6 and a shared normalized `ProviderResult`, `ProviderUsage`, and typed error taxonomy.
+- [ ] Define errors at minimum as `INVALID_INPUT`, `UNAUTHORIZED`, `RIGHTS_BLOCKED`, `RATE_LIMITED`, `TIMEOUT_UNKNOWN`, `PROVIDER_UNAVAILABLE`, `CONTENT_REJECTED`, `MALFORMED_OUTPUT`, and `BUDGET_BLOCKED`.
+- [ ] Every call accepts correlation ID, idempotency key, timeout, and abort signal where supported.
+- [ ] Every result records provider, model/config version, request ID when present, input/output units, duration, attempt, status, and calculated cost.
+- [ ] Create deterministic mock adapters keyed by fixture/case ID. They must simulate success, latency, rate limit, timeout-before-accept, timeout-after-accept, malformed output, and terminal rejection.
+- [ ] Add contract tests that run against every mock and later against every real adapter.
+- [ ] Ensure importing a real adapter while its flag is false cannot make a network call during tests/build.
+
+**Pass:** the full product can exercise accepted, retryable, terminal, and uncertain provider paths with network disabled.
+
+#### WP01-T07 — Create the test layers
+
+- [ ] Unit tests cover pure business rules and validators.
+- [ ] Integration tests run against the reset local PostgreSQL/Supabase stack and mock providers.
+- [ ] Security tests assume multiple users, cohorts, roles, and source states and assert allowed plus forbidden operations.
+- [ ] End-to-end tests use Playwright with isolated synthetic accounts and deterministic data.
+- [ ] Evaluation tests consume versioned JSONL and emit machine-readable plus Markdown reports.
+- [ ] Load tests use a dedicated tool/script and never point at beta by default.
+- [ ] Name slow/paid suites explicitly; `pnpm verify` must remain zero-paid-call.
+- [ ] Configure test timeouts to reveal hanging code, not hide it with very large defaults.
+
+**Pass:** intentionally breaking one boundary causes the correct layer to fail with an actionable message.
+
+#### WP01-T08 — Create CI with a clean-database security gate
+
+- [ ] Create `.github/workflows/ci.yml` with least-privilege permissions and concurrency cancellation for superseded branch runs.
+- [ ] Pin action revisions to immutable commit SHAs or an approved dependency policy.
+- [ ] Use `pnpm install --frozen-lockfile`.
+- [ ] Cache only safe package/build data; never cache `.env`, Supabase credentials, test-user tokens, or private fixtures.
+- [ ] Start the local Supabase stack, reset migrations, seed synthetic data, run database/security tests, generate types, and fail on a type diff.
+- [ ] Run format check, lint, type check, unit/integration/security tests, production build, and a small Playwright smoke suite.
+- [ ] Upload sanitized test/evaluation reports even when a test fails.
+- [ ] Add a secret scan and dependency review appropriate to the repository.
+- [ ] Protect `main` and require CI plus independent review for migration/RLS/deletion/usage changes.
+
+**Pass:** a fresh CI runner reproduces the build without manual dashboard state; a deliberately leaking RLS policy fails the pipeline.
+
+#### WP01-T09 — Provision isolated environments
+
+- [ ] Create an environment matrix containing `local`, `preview`, and `beta`; list database project, storage namespaces, worker/queue namespace, callback base URL, secret scope, data classification, and owner.
+- [ ] Use separate Supabase projects for preview and beta. A branch schema inside beta is not sufficient isolation for private pilot data.
+- [ ] Use synthetic seed data in preview and rights-approved pilot data only in beta.
+- [ ] Configure unique callback signing secrets and provider budget scopes per environment.
+- [ ] Make preview deployment automatic from pull requests and beta deployment an approved promotion of an already-tested commit.
+- [ ] Add `/api/health/live` for process liveness and `/api/health/ready` for dependency readiness without disclosing secrets or internal topology.
+- [ ] Add a post-deploy smoke that verifies health, login page, one authorized route, one forbidden route, and mock-provider mode in preview.
+- [ ] Document rollback to the prior web/worker deployment and forward-only database recovery.
+
+**Pass:** data, keys, callbacks, jobs, and budgets cannot cross preview/beta; the same commit and migrations can reproduce both.
+
+#### WP01-T10 — Write the daily developer tutorial
+
+- [ ] Add `CONTRIBUTING.md` containing workstation setup, clone, install, local stack, environment, reset, test, branch, PR, migration, and troubleshooting instructions.
+- [ ] Add a command table with purpose, paid-call behavior, required services, and expected duration class.
+- [ ] Include the normal daily loop:
+
+```powershell
+pnpm install --frozen-lockfile
+pnpm db:start
+pnpm db:reset
+pnpm dev
+```
+
+- [ ] Include the end-of-session loop:
+
+```powershell
+pnpm verify
+git diff --check
+git status --short
+pnpm db:stop
+```
+
+- [ ] Include recovery for occupied ports, stopped Docker, stale generated types, migration drift, invalid env, and a leaked local token.
+- [ ] Have a reviewer follow `CONTRIBUTING.md` on a clean clone without verbal help and record every ambiguity.
+
+**Pass:** the clean-clone rehearsal reaches the app, local database, tests, and build using the document alone.
+
+#### WP01-T11 — Run the package gate
+
+- [ ] Copy the gate template to `evidence/wp01-foundation`.
+- [ ] Run `pnpm verify` from a clean clone with network access blocked for provider endpoints.
+- [ ] Reset the database twice and compare generated types.
+- [ ] Deploy preview from the candidate SHA and run smoke tests.
+- [ ] Search the repository, build output, logs, and evidence for secret patterns.
+- [ ] Confirm the Supabase breaking-change feed was reviewed and relevant items recorded.
+- [ ] Reviewer records the exact Node, pnpm, Next.js, Supabase CLI, PostgreSQL, and extension versions.
+
 ### 4.1 Create the codebase
 
 Use one TypeScript repository unless measured deployment needs justify a monorepo later. Configure:
@@ -271,6 +862,111 @@ Every adapter returns normalized identifiers, units, latency, retries, cost, and
 - A documented capacity increase does not require source-code restructuring.
 
 ## 5. Work package 2: Database schema and authorization
+
+**Outcome:** a clean database can be recreated from version control; every exposed object has intentional grants and RLS; authorization, availability, provenance, jobs, and usage invariants are enforced below the UI.
+
+### 5.0 Tutorial procedure
+
+#### WP02-T01 — Establish database conventions
+
+- [ ] Add `docs/adr/ADR-0002-database-boundaries.md` covering exposed `public`, private internal schemas, RLS, stable IDs, timestamps, enums/checks, soft deactivation, append-only evidence, and forward migrations.
+- [ ] Use `uuid` primary keys for externally referenced/domain entities and identity/sequence keys only for internal append-only rows where ordering/size benefits are measured.
+- [ ] Use `timestamptz`, UTC storage, `created_at not null default now()`, and explicit actor/reason fields on governed transitions.
+- [ ] Add `not null`, foreign keys, unique constraints, and transition checks at the database layer; TypeScript validation is additional, not a substitute.
+- [ ] Index every foreign key used for joins/deletes and benchmarked authorization/filter columns. Do not add speculative indexes without a query.
+- [ ] Revoke broad defaults first, then explicitly grant only required tables/functions to `anon`, `authenticated`, or worker roles. Remember that a grant exposes an object to a role while RLS controls rows; both must be correct.
+- [ ] Create SQL lint/convention checks and a migration checklist.
+
+#### WP02-T02 — Create migrations in reviewable dependency order
+
+Run `pnpm supabase migration new <name>` once for each row; put only that slice in the generated file:
+
+| Order | Migration description | Must prove before next migration |
+| --- | --- | --- |
+| 01 | `extensions_and_schemas` | Required extensions install with no version clause; internal schemas are not Data API exposed. |
+| 02 | `common_enums_and_functions` | Invalid status transitions fail; functions use a safe search path. |
+| 03 | `profiles_roles_terms` | New synthetic auth user receives a profile safely; user metadata cannot grant a role. |
+| 04 | `catalog_hierarchy` | Parent codes are unique and a unit cannot cross cohorts. |
+| 05 | `memberships_releases_publication` | Inactive/expired membership and locked/unpublished state are queryable deterministically. |
+| 06 | `collection_campaigns_submissions` | Campaign assignment and client idempotency constraints hold. |
+| 07 | `source_rights_raw_lifecycle` | Rights gate and raw state transition reject prohibited moves. |
+| 08 | `processing_jobs_attempts_calls` | Atomic claim/lease constraints and append-only attempts exist. |
+| 09 | `processed_documents_segments_vectors` | Dimension matches the approved embedding config; content/config uniqueness holds. |
+| 10 | `tutor_sessions_answers_evidence` | Answer evidence references immutable source segments and authorized scope. |
+| 11 | `studio_artifacts_quizzes` | Request/cache/submission idempotency and answer-key separation hold. |
+| 12 | `usage_budget_rate_limits` | Reservation/settlement is transactional and append-only. |
+| 13 | `audit_incidents` | Governed mutations append actor, before/after, correlation, and reason. |
+| 14 | `availability_retrieval_functions` | Caller-scoped availability and worker retrieval reject forged scope. |
+| 15 | `rls_grants_indexes` | Full allow/deny matrix passes and query plans use intended indexes. |
+
+For each migration:
+
+- [ ] Write an accompanying SQL or integration test before moving to the next row.
+- [ ] Run a clean reset.
+- [ ] Upgrade a populated fixture database and verify retained rows/evidence.
+- [ ] Generate TypeScript types and inspect the diff.
+- [ ] Run database advisors supported by the pinned CLI and record unresolved warnings.
+- [ ] Document a forward repair plan; do not assume a shared database can safely migrate backward.
+
+#### WP02-T03 — Implement reusable authorization predicates
+
+- [ ] Create small stable helper functions only where they improve one source of truth: `is_admin`, `has_active_membership`, `has_campaign_assignment`, and `can_access_unit`.
+- [ ] Prefer `security invoker`. If `security definer` is unavoidable, place it in a non-exposed schema, set `search_path` explicitly, verify `auth.uid()`/caller authority inside, revoke `PUBLIC` execute, and grant only the intended role.
+- [ ] Use `(select auth.uid())` inside RLS predicates where appropriate to avoid repeated function evaluation.
+- [ ] Do not use `auth.role()` or `TO authenticated` alone as authorization.
+- [ ] Add both `USING` and `WITH CHECK` for update policies and add the SELECT policy required for update visibility.
+- [ ] Test JWT/app-metadata staleness or avoid relying on mutable claims for immediate revocation.
+
+#### WP02-T04 — Build the actor/action/resource matrix first
+
+- [ ] Copy `docs/templates/rls-matrix.csv` to `docs/security/rls-matrix.csv`.
+- [ ] Add every table/view/function as a resource and every `anon`, student, Batch Leader, admin, worker, and service action as rows.
+- [ ] Mark each cell `ALLOW`, `DENY`, or `SERVER_ONLY`; include the predicate and test ID.
+- [ ] For every `ALLOW`, add a positive test. For every high-risk boundary, add a negative test using a different user, cohort, unit, role, state, and expired/revoked access where applicable.
+- [ ] Query `pg_class`, `pg_policies`, and grants in a meta-test so a newly exposed table without RLS/policy review fails CI.
+
+#### WP02-T05 — Implement availability as a derived contract
+
+- [ ] Create one caller-scoped security-invoker view/function for student catalog availability; do not store an editable `available` boolean.
+- [ ] Implement every predicate from section 5.8 with explicit tests for each single failed predicate and combinations.
+- [ ] Return a safe reason code to authorized admin diagnostics, but only a generic empty/locked state to students when detail could expose private configuration.
+- [ ] Add indexes only after capturing `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` on representative seeded data.
+- [ ] Store the plan report in `evidence/wp02-database/query-plans/` and assert reasonable plan shape in integration tests without overfitting volatile cost numbers.
+
+#### WP02-T06 — Implement server-only retrieval scope
+
+- [ ] Put the unrestricted segment/vector tables outside direct student grants.
+- [ ] Expose a narrow server/worker function accepting user, cohort, unit, active embedding config, query vector/text, and limit.
+- [ ] Recompute access and active source scope inside the function; never trust a client-supplied filter.
+- [ ] Filter by authorization/source state before ordering/limiting similarity results.
+- [ ] Match HNSW operator class to the chosen distance operator and order by the distance expression directly.
+- [ ] Add cross-cohort/program canary tests and revoked-source tests.
+
+#### WP02-T07 — Make jobs and usage state machines transactional
+
+- [ ] Create transition functions for job claim/heartbeat/success/retry/fail and usage reserve/settle/release/expire.
+- [ ] Lock the relevant row, check the prior state and idempotency key, perform ledger/event writes in the same transaction, and return the canonical existing result on replay.
+- [ ] Prevent negative settled units, double settlement, lease completion by another owner, and a READY source with missing prerequisites.
+- [ ] Add concurrency tests with two claimers/settlers racing the same key.
+
+#### WP02-T08 — Prove RLS is not bypassed by application architecture
+
+- [ ] Run student-path database queries with the user's authenticated client, not the service role.
+- [ ] Restrict admin/service clients to narrow server-only modules and log audited privileged actions.
+- [ ] Test views for `security_invoker = true` or keep them in an unexposed schema.
+- [ ] Test Storage object policies separately from table policies, including signed upload finalization and storage upsert's INSERT/SELECT/UPDATE requirements if upsert is allowed.
+- [ ] Test that deleting/revoking a user/session follows the approved token-expiry/revocation policy.
+
+#### WP02-T09 — Run the database gate
+
+- [ ] Reset from empty twice.
+- [ ] Upgrade the previous tagged schema with populated fixtures.
+- [ ] Run the complete RLS/grant matrix.
+- [ ] Run race/idempotency tests.
+- [ ] Generate types and require zero diff.
+- [ ] Run database advisors and review every warning.
+- [ ] Capture representative availability and retrieval plans.
+- [ ] Reviewer inspects migrations for unsafe definer functions, broad grants, missing `WITH CHECK`, unindexed foreign keys, destructive statements, and accidental Data API exposure.
 
 ### 5.1 Migration order
 
@@ -435,6 +1131,79 @@ If a `SECURITY DEFINER` function is unavoidable, place it outside exposed schema
 
 ## 6. Work package 3: Product shell, catalog, and release controls
 
+**Outcome:** each role can complete its non-AI journey against mocked providers; server-derived scope and database policy prevent URL/form manipulation; release state is safe and auditable.
+
+### 6.0 Tutorial procedure
+
+#### WP03-T01 — Build the bilingual design and terminology foundation
+
+- [ ] Create `src/lib/catalog/terminology.ts` that derives Module/Subject labels from program data; no faculty-name conditional is allowed.
+- [ ] Create a locale dictionary for Arabic and English UI copy, validation errors, empty states, safety labels, and status labels.
+- [ ] Set `lang` and `dir` on the root layout from validated preference; use CSS logical properties so RTL does not require duplicate components.
+- [ ] Define accessible color, focus, typography, spacing, loading, error, empty, and disabled states.
+- [ ] Test English technical terms inside Arabic text and keyboard/screen-reader navigation.
+
+#### WP03-T02 — Implement auth and consent as complete flows
+
+- [ ] Build login, registration, email verification, logout, expired-link, suspended-account, and rate-limited states.
+- [ ] Require current terms/privacy/educational-boundary acceptance before learning routes.
+- [ ] Use generic authentication errors where account discovery would leak membership.
+- [ ] Redirect only to validated internal destinations; reject open redirects.
+- [ ] Test new, verified, unverified, suspended, revoked-session, and stale-cookie users.
+
+#### WP03-T03 — Implement the catalog journey server-first
+
+- [ ] Load allowed options in Server Components/services using caller-scoped database functions.
+- [ ] Treat query parameters as selection hints only; validate every value against the returned authorized option set.
+- [ ] Clear all downstream selections when an upstream value changes.
+- [ ] Encode a stable authorized selection in the URL so refresh/back works without broadening access.
+- [ ] Implement distinct safe empty states from section 6.2 and analytics events that record reason codes without private labels.
+- [ ] Add Playwright cases for refresh, back/forward, direct deep link, forged IDs, expired membership, and release changing while the page is open.
+
+#### WP03-T04 — Build the unit workspace shell
+
+- [ ] Create layout, overview, chat placeholder, Studio placeholder, and quiz routes under one authorized cohort/unit segment.
+- [ ] Resolve and authorize the workspace in the server layout so every child inherits canonical scope.
+- [ ] Display breadcrumb, dynamic terminology, safe source status, material update, quota, language, and navigation.
+- [ ] Use `loading.tsx`, `error.tsx`, and `not-found.tsx` deliberately; do not reveal whether an unauthorized private ID exists.
+- [ ] Starting/switching chat creates/selects a session whose scope is persisted server-side.
+
+#### WP03-T05 — Build Batch Leader collection flow
+
+- [ ] Show only active assigned campaigns and requested items.
+- [ ] Generate the client idempotency key before upload and preserve it across UI retry.
+- [ ] Validate file signature/type/size before issuing a signed upload target; treat client MIME as advisory.
+- [ ] Finalize through an authenticated server mutation that verifies campaign assignment, object metadata/checksum, rights declaration, and idempotency.
+- [ ] Show submitted/processing/needs-correction status without job/provider/internal diagnostics.
+- [ ] Test wrong campaign, expired assignment, replayed finalize, abandoned upload, checksum mismatch, forbidden type, and revoked rights.
+
+#### WP03-T06 — Build audited admin actions, not table editors
+
+- [ ] Implement a typed server action/service for every action in section 6.4.
+- [ ] Require actor, target, expected prior version/state, reason, and correlation ID.
+- [ ] Use optimistic concurrency so a stale admin page cannot overwrite a newer decision.
+- [ ] Show the exact failed readiness predicate before publication/unlock and require a deliberate confirmation for high-impact actions.
+- [ ] Append audit events in the same transaction as the governed change.
+- [ ] Make emergency disable/lock actions fast and reversible without deleting data.
+- [ ] Test a second admin race, stale version, non-admin invocation, source with invalid rights, and unit with zero READY sources.
+
+#### WP03-T07 — Add UI and API contract tests
+
+- [ ] Use mocked providers only.
+- [ ] Test each role's allowed navigation and forbidden direct URL/API access.
+- [ ] Verify no browser request or React payload contains a service key, worker diagnostics, raw object key, private source text, or another user's state.
+- [ ] Run automated accessibility checks on auth, catalog, workspace, submission, and admin critical screens.
+- [ ] Capture screenshots only as supplemental UI evidence; passing security/contract tests remain mandatory.
+
+#### WP03-T08 — Run the product-shell gate
+
+- [ ] Reset/seed a clean local stack.
+- [ ] Run the full role matrix in Playwright.
+- [ ] Demonstrate Human `Modules` and Veterinary `Subjects` from configuration.
+- [ ] Lock/deactivate/revoke access during an active browser session and confirm the next server operation fails safely.
+- [ ] Replay upload finalization and every admin action idempotently.
+- [ ] Review audit rows and browser network output.
+
 ### 6.1 Routes
 
 Implement at minimum:
@@ -513,6 +1282,117 @@ The submission form requires campaign, requested item or curriculum unit, title,
 - No paid provider call is required for UI completion.
 
 ## 7. Work package 4: Automated source processing
+
+**Outcome:** representative rights-approved PDF/audio sources move from finalized submission to READY or a precise terminal exception without manual database work; raw data is deleted only after verified processed output, and replay creates no duplicate state or cost.
+
+### 7.0 Tutorial procedure
+
+#### WP04-T01 — Freeze processor contracts before real files
+
+- [ ] Define versioned schemas for `InspectedSource`, `ProcessedDocument`, `Locator`, `Segment`, `QualityReport`, and every job input/output.
+- [ ] Include schema version, source/version ID, checksum, content hash, language profile, coverage map, warnings, and correlation ID.
+- [ ] Store large processed payloads in durable object storage and transactional metadata/checksums in PostgreSQL; do not put unique workflow state only in an object or queue message.
+- [ ] Create synthetic tiny native PDF, scanned PDF, corrupt PDF, password-protected PDF, Arabic/English audio, silent audio, boundary-chunk audio, and malicious-instruction fixtures with known expected output.
+- [ ] Review fixture rights; generated fixtures should be the default test data.
+
+#### WP04-T02 — Implement the workflow state machine
+
+- [ ] Create one job per explicit graph step and dependencies in the same transaction that accepts/finalizes the source version.
+- [ ] Generate deterministic idempotency keys from source version, step, processor/config version, and relevant content hash.
+- [ ] Implement atomic claim with lease owner/expiry and an attempt record before processing.
+- [ ] Heartbeat long work, reject completion by a non-owner/expired lease, and reclaim safely.
+- [ ] Classify typed failures as retryable, terminal, needs review, or uncertain provider acceptance.
+- [ ] Use capped exponential backoff with jitter and persist `available_at`; never busy-loop a failed provider.
+- [ ] Make cancellation/deactivation prevent new dependent jobs while preserving history.
+
+#### WP04-T03 — Implement secure temporary storage
+
+- [ ] Separate temporary raw, temporary derived, and durable processed namespaces/buckets.
+- [ ] Deny public listing/read; issue short-lived, exact-object signed operations only after server authorization.
+- [ ] Store provider/object key server-side and log only a fingerprint where full keys are unnecessary.
+- [ ] Add orphan-upload reconciliation for signed uploads never finalized.
+- [ ] Add malware/content-type inspection appropriate to the selected host before expensive processing.
+- [ ] Enforce bytes/pages/duration and rights before provider cost.
+
+#### WP04-T04 — Build native PDF extraction incrementally
+
+- [ ] Inspect magic bytes, encryption, page count, metadata, corruption, and checksum.
+- [ ] Extract page by page and record text density/anomalies before deciding OCR ranges.
+- [ ] Normalize headers, footers, hyphenation, lists, headings, tables, formulas, captions, and diagrams conservatively; never delete meaning merely to reduce bytes.
+- [ ] Write temporary output incrementally, then atomically finalize only after every page is represented, explicitly blank, or rejected.
+- [ ] Map normalized character ranges to original pages with confidence and validate non-overlap/bounds.
+- [ ] Compare representative extracted pages visually/textually with the source during processor qualification.
+
+#### WP04-T05 — Add selective OCR
+
+- [ ] Define measured per-page OCR triggers using text density, replacement characters, layout anomalies, and fixture results.
+- [ ] Route only selected page ranges to the OCR adapter and reserve maximum cost first.
+- [ ] Merge OCR/native output in original page order without duplicate text.
+- [ ] Validate Arabic/English terminology, tables, formulas, and page coverage.
+- [ ] Mark irrecoverable visual meaning as `NEEDS_REVIEW`; do not claim full processing.
+
+#### WP04-T06 — Build complete audio transcription
+
+- [ ] Inspect codec/container, duration, channels, sample rate, corruption, and cost ceiling.
+- [ ] If chunking is required, calculate deterministic chunks with overlap and retain their exact time ranges.
+- [ ] Merge with boundary de-duplication and prove accounted duration within the approved tolerance.
+- [ ] Preserve Arabic/English code-switching and technical terms; do not translate unless a separate approved step requests it.
+- [ ] Persist confidence/timestamp locators and flag long silence or low-confidence spans.
+- [ ] Delete all temporary normalized audio/chunks after the finalized transcript passes verification; verify absence separately from raw-source deletion.
+
+#### WP04-T07 — Tag professor evidence safely
+
+- [ ] Tag only spans with evidence and keep tag type, label, confidence, details, locator, and tagger version.
+- [ ] Distinguish `PROFESSOR_HINT`, `EXAM_EMPHASIS`, `EXCLUSION`, `CORRECTION`, and `LIKELY_QUESTION`.
+- [ ] Never rewrite possibility/emphasis into certainty or an exam guarantee.
+- [ ] Create positive/negative Arabic/English fixture cases and academic-review samples.
+
+#### WP04-T08 — Verify processed output before deleting raw data
+
+- [ ] Reopen the finalized processed object from durable storage rather than trusting the write response.
+- [ ] Recompute checksum and validate the schema.
+- [ ] Verify page/duration coverage, non-empty threshold, locator bounds, terminology sample, duplicate ratio, and absence of unresolved blocker warnings.
+- [ ] Persist the immutable quality report and accepted policy/version.
+- [ ] Enqueue deletion only from the passing/approved state in a transaction.
+- [ ] Inject failures before and after finalization and prove deletion was not enqueued early.
+
+#### WP04-T09 — Delete and independently verify raw absence
+
+- [ ] Lock the raw row, re-evaluate accepted processed state and legal/rights hold, and use the exact stored provider key.
+- [ ] Record the deletion request result, then perform an independent metadata/head/list absence check supported by the provider.
+- [ ] Treat timeout or ambiguous response as unresolved, not success; retry verification before reissuing a potentially redundant delete.
+- [ ] Append attempts; never overwrite deletion history.
+- [ ] Clear reusable access URLs and retain only approved audit metadata.
+- [ ] Raise an incident automatically when `delete_after` is exceeded.
+- [ ] Test already-absent object, access-denied deletion, delayed consistency, provider outage, hold placed during processing, and deletion replay.
+
+#### WP04-T10 — Chunk, embed, and mark READY
+
+- [ ] Chunk by document structure/semantic boundaries and record a versioned chunking config.
+- [ ] Preserve coherent tables, definitions, questions/answers, and professor statements; keep limited documented overlap.
+- [ ] Hash normalized content and deduplicate without losing legitimate repeated context or provenance.
+- [ ] Reserve embedding budget, batch by provider limit, and reuse by content hash plus embedding config.
+- [ ] Validate returned vector count, dimensions, finite numeric values, normalization expectation, and model identity before insert.
+- [ ] Use one active compatible embedding config per retrieval comparison.
+- [ ] Build/benchmark exact and HNSW search; match index operator class and query distance.
+- [ ] Mark READY only through a protected transition that recomputes every readiness predicate.
+
+#### WP04-T11 — Reconcile every incomplete state
+
+- [ ] Reclaim expired leases.
+- [ ] Resume workflows with a succeeded parent and missing child.
+- [ ] Verify uncertain provider timeouts using provider request ID where supported.
+- [ ] Find accepted processed output without deletion job, verified deletion without chunks, missing/outdated embeddings, READY inconsistency, orphan temporary objects, and unsettled cost reservations.
+- [ ] Make reconciliation idempotent and emit metrics/incidents rather than editing history.
+
+#### WP04-T12 — Run the fault matrix and package gate
+
+- [ ] Inject a crash immediately before and after every external call and every database state transition.
+- [ ] Run two workers racing the same job and a lease expiry during a slow call.
+- [ ] Replay the entire source workflow with identical submission and step keys.
+- [ ] Compare counts/checksums/provider-call records/usage before and after replay.
+- [ ] Exercise native PDF, scanned PDF, mixed audio, duplicate, corrupt, timeout, malformed provider output, rights revocation, hold, deletion failure, and one terminal source alongside a valid source.
+- [ ] Prove zero premature deletion, one final processed document, stable segment/vector counts, exactly-once settlement, and automatic progress/isolation.
 
 ### 7.1 Job graph
 
@@ -649,6 +1529,56 @@ Inject failure after each job step and rerun the workflow. Prove:
 
 ## 8. Work package 5: Retrieval evaluation before chat
 
+**Outcome:** authorized hybrid retrieval and deterministic evidence classification meet frozen quality, leakage, latency, and cost gates before any generative chat is enabled.
+
+### 8.0 Tutorial procedure
+
+#### WP05-T01 — Build the evaluation runner first
+
+- [ ] Load the frozen manifest/JSONL, validate hashes/schema/counts, and refuse an unreviewed or modified dataset.
+- [ ] Reset/seed the exact source scope referenced by the suite and record active source/embedding/chunking versions.
+- [ ] Execute cases deterministically where possible and store case-level JSONL plus aggregate Markdown/JSON.
+- [ ] Record returned IDs, component scores, classification reasons, authorization scope, latency, provider units, config, and correlation ID.
+- [ ] Calculate recall@k, MRR, class confusion matrix, conflict/hint metrics, leakage count, p50/p95, and cost.
+
+#### WP05-T02 — Implement query normalization as an auditable step
+
+- [ ] Preserve original query and create a separate normalized/search form.
+- [ ] Normalize Unicode, Arabic letter/diacritic variants, whitespace, and configured spelling aliases conservatively.
+- [ ] Preserve English medical/veterinary terms and numbers.
+- [ ] Add tests proving normalization does not change intended entities or broaden scope.
+
+#### WP05-T03 — Implement filtered hybrid retrieval
+
+- [ ] Revalidate user/session/cohort/unit before embedding or query execution.
+- [ ] Run keyword/full-text and vector branches concurrently with identical active-scope filters applied inside each branch before limit.
+- [ ] Order the vector branch by its distance expression so the chosen index can be used.
+- [ ] Merge by segment ID using a versioned fusion formula; retain raw component scores for evaluation.
+- [ ] Remove near-duplicates, diversify sources, preserve adjacent context only when justified, and boost tagged evidence only for a matching intent.
+- [ ] Enforce maximum results/evidence tokens and redact internal diagnostics from student responses.
+
+#### WP05-T04 — Calibrate evidence classification without generation
+
+- [ ] Implement supported/partial/unavailable/conflict signals and reason codes as versioned code/config.
+- [ ] Tune thresholds only on a calibration split; report final metrics on a held-out split.
+- [ ] Require coverage of each requested part, not merely one high vector score.
+- [ ] Detect known annotated conflict and return both evidence groups.
+- [ ] Prohibit any later generator from upgrading `UNAVAILABLE` or filling missing `PARTIAL` points.
+
+#### WP05-T05 — Prove isolation before ranking quality
+
+- [ ] Add canary segments to other user/cohort/unit/program, inactive source, old curriculum edition, and revoked-rights scope.
+- [ ] Run direct function, server service, and HTTP/API attempts with forged filters.
+- [ ] Fail the entire gate on one cross-scope result even if ranking metrics are excellent.
+
+#### WP05-T06 — Establish and approve the baseline
+
+- [ ] Run exact vector search and candidate HNSW settings on the same dataset.
+- [ ] Inspect false negatives, false positives, Arabic/English misses, hint misses, conflict misses, and slow queries case by case.
+- [ ] Change one retrieval variable at a time and record before/after metrics.
+- [ ] Freeze the accepted config with version and dataset hash.
+- [ ] Reviewer approves numeric gates; “reasonable results” is not a gate.
+
 ### 8.1 Authorized retrieval interface
 
 Define one server-only interface accepting authenticated user ID, cohort ID, curriculum-unit ID, normalized query, optional topic filter, result limit, and correlation ID. It returns segment ID, source-version ID, source title/format, content, score components, heading path, reliable locator if present, and tags.
@@ -706,6 +1636,71 @@ Report recall@k, mean reciprocal rank, unavailable-classification accuracy, conf
 - Retrieval latency/cost fit the 100-student plan.
 
 ## 9. Work package 6: Strict-RAG subject chat
+
+**Outcome:** the student receives a streamed, source-grounded answer or an explicit partial/unavailable/conflict/safety result; an invalid factual draft is never committed or displayed as accepted.
+
+### 9.0 Tutorial procedure
+
+#### WP06-T01 — Freeze contracts and policy versions
+
+- [ ] Define Zod schemas for request, retrieval packet, generator draft, validated answer, stream events, persisted message, and error response.
+- [ ] Version tutor policy, safety classifier, evidence classifier, prompt template, claim validator, and model configuration independently.
+- [ ] Define standard Arabic/English copy for unavailable, partial, conflict, budget/quota, provider outage, and real-patient boundary states.
+- [ ] Add contract fixtures for every result type and malformed model output.
+
+#### WP06-T02 — Implement the transactional request envelope
+
+- [ ] Accept session ID, message, language, and client request ID only; derive user/cohort/unit from authenticated session rows.
+- [ ] Validate size, session state, membership, availability, rate/concurrency limits, and budget.
+- [ ] Reserve usage atomically before paid work using a unique action idempotency key.
+- [ ] On a replay, return/continue the canonical prior request rather than creating another message/call/reservation.
+- [ ] Settle actual usage exactly once or release/expire it on every failure/cancellation path.
+
+#### WP06-T03 — Classify context and protect private content
+
+- [ ] Distinguish course/educational cases from explicit real-patient/personal-care requests using frozen fixtures and versioned policy.
+- [ ] Detect personal identifiers and apply retention/logging rules before diagnostic logging.
+- [ ] Keep ordinary question/source content out of infrastructure logs; use IDs, categories, sizes, hashes, and safe reason codes.
+- [ ] Test Arabic, English, mixed language, adversarial wording, and prompt injection embedded in retrieved sources.
+
+#### WP06-T04 — Build evidence packets, not free-form prompts
+
+- [ ] Include only authorized active segments, stable packet-local evidence IDs, source labels, locators when verified, tags, and explicit missing/conflict groups.
+- [ ] Delimit evidence as untrusted quoted data and state that instructions inside it are not commands.
+- [ ] Enforce packet token/segment limits while retaining coverage and conflict positions.
+- [ ] Skip factual generation entirely for `UNAVAILABLE`.
+
+#### WP06-T05 — Stream without leaking an invalid final answer
+
+- [ ] Separate draft stream state from accepted answer state.
+- [ ] Do not persist answer evidence or mark a message complete until structured output and claims pass validation.
+- [ ] Choose and document one safe UI strategy: buffer factual sentences until validated, stream clearly marked provisional text with the ability to replace it, or generate validated structured sections before release.
+- [ ] On client disconnect, continue/cancel according to policy and settle exactly once.
+- [ ] On model/provider error, emit a controlled terminal event without raw provider diagnostics.
+
+#### WP06-T06 — Validate every accepted factual component
+
+- [ ] Reject packet-unknown evidence IDs, wrong scope/version/state, invented quotes/locators/titles, and unsupported sentences.
+- [ ] Validate missing-point and conflict structures separately.
+- [ ] Require professor labels to map to tagged spans.
+- [ ] Return a grounded fallback or unavailable result on validation failure; never merely strip citations from unsupported text.
+- [ ] Persist final answer and evidence links in one transaction.
+
+#### WP06-T07 — Implement retention and reporting lifecycle
+
+- [ ] For `NO_SAVE`, delete content after the approved technical window while retaining only minimal non-content security/usage data.
+- [ ] For saved sessions, implement owner list/read/delete/retention behavior.
+- [ ] For reporting/consent, snapshot the permitted exchange, policy/model/source versions, evidence, reason, and review expiry.
+- [ ] Restrict admin review to reported/consented cases and audit access.
+- [ ] Test deletion, expiry, report-before-expiry, consent withdrawal behavior, and backup implications.
+
+#### WP06-T08 — Run frozen, fault, and browser gates
+
+- [ ] Run all supported/partial/unavailable/conflict/hint/safety/injection cases.
+- [ ] Kill the client stream, generation worker, and provider response at defined points.
+- [ ] Replay the client request ID and verify one answer/settlement.
+- [ ] Revoke membership/source during a request and verify the final commit rechecks applicable scope.
+- [ ] Assert zero outside network/search calls, zero unsupported accepted claims, full accepted provenance, and numeric gates from section 9.9.
 
 ### 9.1 Chat request contract
 
@@ -808,6 +1803,56 @@ Test explicit statements such as "this is happening to me now," identifiable pat
 
 ## 10. Work package 7: Studio and quiz
 
+**Outcome:** every artifact and quiz item is durable, authorized, source-grounded, validated, invalidated with source changes, and charged/settled exactly once.
+
+### 10.0 Tutorial procedure
+
+#### WP07-T01 — Define one artifact envelope and typed payloads
+
+- [ ] Create a common envelope with artifact/request IDs, type, language, normalized parameters, scope hash, policy/model/validator versions, status, evidence map, and validation issues.
+- [ ] Create separate versioned schemas for summary, guide, practice questions, flashcards, revision pack, and MCQs.
+- [ ] Reject unknown fields/invalid structures at the worker boundary and preserve the malformed draft only in restricted diagnostics if policy permits.
+
+#### WP07-T02 — Implement durable request and safe cache lookup
+
+- [ ] Canonicalize parameters and compute cache key from authorized active source versions, policy/model/validator, artifact type, language, and parameters.
+- [ ] Revalidate the requesting user's current access to all cached evidence before reuse.
+- [ ] Reserve usage and create the durable request transactionally.
+- [ ] Return the canonical artifact/request on duplicate idempotency key.
+- [ ] Run generation in the worker; browser lifetime must not control completion.
+
+#### WP07-T03 — Generate and validate by artifact type
+
+- [ ] Retrieve through the same authorized unit service as chat.
+- [ ] Represent partial coverage/conflicts explicitly; do not label an incomplete artifact comprehensive.
+- [ ] Map every factual section/item/answer/rationale to evidence.
+- [ ] Reject duplicate/near-duplicate questions/cards and ambiguous wording.
+- [ ] For MCQ, require one correct option in single-best-answer mode, unique options, supported correct answer and rationales, and no answer leakage.
+- [ ] Keep original-exam content disabled unless the individual source permission explicitly permits it.
+
+#### WP07-T04 — Implement quiz lifecycle server-side
+
+- [ ] Start attempts from an authorized current artifact and store item order/options needed for stable review.
+- [ ] Keep answer keys server-side before submission.
+- [ ] Save responses idempotently, enforce server timestamps/timer rules, and calculate score on the server.
+- [ ] Make final submission idempotent and immutable except through a separately audited correction policy.
+- [ ] Preserve historical attempts when the source/artifact later becomes stale while clearly labeling current availability.
+
+#### WP07-T05 — Invalidate safely on scope change
+
+- [ ] Recompute scope hashes on source activation/deactivation/replacement, rights revocation, embedding/policy changes, or corrected evidence.
+- [ ] Hide/mark stale artifacts from current study views without deleting historical evidence/attempts.
+- [ ] Cancel queued requests whose authorization or source scope is no longer valid and release reservations.
+- [ ] Test a change during generation, during quiz, and after submission.
+
+#### WP07-T06 — Run artifact and quiz gates
+
+- [ ] Run every frozen artifact type in both supported and insufficient scope.
+- [ ] Validate claim/item provenance coverage and zero unsupported accepted content.
+- [ ] Race duplicate requests and duplicate final quiz submissions.
+- [ ] Attempt cache access from another user/cohort/unit and after membership/source revocation.
+- [ ] Verify timed/untimed scoring, answer-key secrecy, grounded review, settlement, retry, and invalidation.
+
 ### 10.1 Studio request flow
 
 1. Student opens Studio inside an authorized unit.
@@ -876,6 +1921,70 @@ When a source version is deactivated/replaced:
 - Retry/cache behavior creates no duplicate artifact or usage settlement.
 
 ## 11. Work package 8: Operations and zero-manual automation
+
+**Outcome:** web, workers, scheduler, alerts, backup/restore, and incidents operate without a founder laptop or routine database intervention; failures recover or isolate automatically.
+
+### 11.0 Tutorial procedure
+
+#### WP08-T01 — Write deployment topology and ownership
+
+- [ ] Create `docs/operations/topology.md` naming web, ingestion worker, generation worker, reconciliation scheduler, database, queue, raw/processed storage, monitoring, and notification boundaries.
+- [ ] Record deployment artifact, region, runtime/size, concurrency, health endpoint, scaling control, secret scope, log destination, and owner for each component.
+- [ ] Prove workers/scheduler remain running when Ahmed's and Ziad's computers are off.
+- [ ] Keep PostgreSQL as workflow authority even if an external queue/orchestrator is used.
+
+#### WP08-T02 — Deploy health, metrics, logs, and traces
+
+- [ ] Emit structured JSON with timestamp, environment, release, component, correlation/request/job/provider IDs, safe event, duration, outcome, and error code.
+- [ ] Define liveness separately from readiness and include dependency checks with timeouts.
+- [ ] Track request rate/error/duration, first-token time, queue age/depth, job outcome/retry, lease expiry, provider latency/error/cost, raw deletion age, retrieval quality, validation failures, reservations, budgets, database/storage capacity, and reconciliation outcome.
+- [ ] Redact secrets, authorization headers, signed URLs, source content, and ordinary chat content; test redaction.
+
+#### WP08-T03 — Implement schedules as idempotent jobs
+
+- [ ] Create one named function/job per interval in section 11.2 and document its query, batch limit, timeout, lock, retry, metric, and incident threshold.
+- [ ] Prevent overlapping runs with an advisory lock or durable scheduler claim.
+- [ ] Paginate/batch large scans and persist cursors only when needed.
+- [ ] Test skipped schedule, duplicate invocation, partial failure, long run, and clock/time-zone boundaries.
+
+#### WP08-T04 — Build least-privilege admin operations
+
+- [ ] Build dashboards in section 11.3 from safe summary views/services.
+- [ ] Replace arbitrary edit/replay controls with audited typed actions and precondition checks.
+- [ ] Require reason/confirmation for source deactivation, cohort lock, raw hold, replay after terminal correction, and provider/feature enablement.
+- [ ] Show operator-safe details; place sensitive provider/raw/chat evidence behind stricter access and audit.
+
+#### WP08-T05 — Implement alert routing and automatic controls
+
+- [ ] Create `docs/operations/alert-catalog.md` with signal, query, severity, threshold/window, dedup key, recipients, automatic action, acknowledgment, escalation, and runbook link.
+- [ ] Test every alert using synthetic events, including delivery failure.
+- [ ] Make budget/provider circuit controls atomic and immediately effective for new reservations/claims.
+- [ ] Ensure disabling new paid work does not corrupt already accepted/paid jobs.
+- [ ] Prevent alert storms using grouping/dedup/recovery notices without hiding continued failure.
+
+#### WP08-T06 — Back up and restore the complete durable system
+
+- [ ] Document what database backups include and explicitly exclude object storage.
+- [ ] Configure processed-object durability/versioning/backup consistent with policy; exclude temporary raw beyond its allowed window.
+- [ ] Restore database and processed objects into an isolated project/namespace.
+- [ ] Reconnect or rebuild embeddings according to the documented strategy.
+- [ ] Verify row counts plus referential checks for catalog, access, sources, documents, segments, evidence, artifacts, usage, jobs, and audit—not just “restore completed.”
+- [ ] Verify no expired raw object was resurrected by backup/restore.
+
+#### WP08-T07 — Write and exercise incident runbooks
+
+- [ ] Copy the incident template for every incident in section 11.6.
+- [ ] Fill detection, severity, immediate containment, evidence preservation, owner/escalation, communications decision, diagnosis, repair, replay, validation, recovery, and post-incident action.
+- [ ] Run tabletop exercises for every runbook and hands-on exercises for leakage, bad source, deletion failure, provider outage, stuck job, budget exhaustion, leaked secret, and restore/re-index.
+- [ ] Time detection/containment/recovery and record gaps as defects.
+
+#### WP08-T08 — Run the unattended proof
+
+- [ ] Start from a recorded candidate SHA/config fingerprint.
+- [ ] Submit valid synthetic PDF/audio and Studio work, inject transient provider failure, expire a lease, fail deletion, fail chat generation, and interrupt one worker.
+- [ ] Leave the system unattended for the approved observation window.
+- [ ] Confirm recovery/isolation, correct alerts, stable idempotent counts, settled usage, and no manual SQL/script action.
+- [ ] Attach a timestamped event timeline and reviewer sign-off.
 
 ### 11.1 Always-on runtime
 
@@ -978,6 +2087,54 @@ Run an unattended test window that includes valid PDF/audio submissions, a trans
 
 ## 12. Work package 9: Cost and 100-student validation
 
+**Outcome:** the minimum practical beta configuration meets an exact, reproducible 100-student scenario with zero leakage/lost work/duplicate accounting and approved performance/cost.
+
+### 12.0 Tutorial procedure
+
+#### WP09-T01 — Benchmark providers with a controlled matrix
+
+- [ ] Use the frozen representative fixtures and identical prompts/settings where comparison permits.
+- [ ] Record provider/model/version/region, quality score, units, retries, p50/p95, error behavior, concurrency/rate limits, data handling/rights fit, and calculated cost in one currency/date.
+- [ ] Separate cold/warm and success/retry cost.
+- [ ] Score quality/rights/reliability as mandatory gates before weighted price.
+- [ ] Write the provider decision record and fallback/disable strategy; never record credentials.
+
+#### WP09-T02 — Freeze infrastructure and test safety
+
+- [ ] Record exact web/worker/database/queue/storage plans, regions, pooling, concurrency, limits, cache, provider quotas, flags, and release SHA.
+- [ ] Provision only synthetic test users/content with canaries and a dedicated test prefix/scope.
+- [ ] Confirm the load runner cannot target beta/production without an explicit two-step opt-in and approved abort thresholds.
+- [ ] Reconcile baseline counts and budgets before starting.
+
+#### WP09-T03 — Execute reproducibly
+
+- [ ] Run warm-up and discard/report it separately.
+- [ ] Execute the frozen realistic arrival-rate scenario, then the separate peak burst.
+- [ ] Overlap PDF/audio ingestion, provider slowdown, worker termination, and database connection pressure exactly as specified.
+- [ ] Abort automatically on leakage, budget, destructive error, or environment-health thresholds.
+- [ ] Preserve load-tool output, telemetry window, database plans/stats, job events, cost ledger, and config fingerprint.
+
+#### WP09-T04 — Reconcile correctness after traffic
+
+- [ ] Compare accepted requests to persisted terminal results.
+- [ ] Verify zero lost accepted jobs, duplicate messages/artifacts/settlements/provider charges, negative/unsettled reservations, cross-scope canaries, or uncontrolled backlog.
+- [ ] Wait for the defined cooldown/reconciliation window and prove queues return below threshold.
+- [ ] Calculate success excluding intentional quota rejection, first-token/full latency, queue age, database saturation, provider cost, cache rate, and error-class distribution.
+
+#### WP09-T05 — Tune one bottleneck at a time
+
+- [ ] Rank bottlenecks from evidence and apply section 12.5 in order.
+- [ ] Keep workload seed/dataset/config stable except for the named change.
+- [ ] Compare confidence intervals or repeated-run variability before claiming improvement.
+- [ ] Reject a cheaper config that weakens leakage, grounding, deletion, or accepted-work durability.
+- [ ] Freeze the minimum passing config and its capacity-increase switches.
+
+#### WP09-T06 — Approve the load/cost gate
+
+- [ ] Publish a report with exact scenario, versions, pass/fail against every threshold, cost totals/p95 action cost, limitations, and next capacity trigger.
+- [ ] Have security/data and cost owners independently review leakage/accounting and budget results.
+- [ ] Do not average away a release-blocking single leakage or duplicate-charge event.
+
 ### 12.1 Benchmark providers
 
 Use representative native PDF, scanned PDF, mixed Arabic/English audio, professor voice note, chat evidence packets, and each Studio type. Record quality, latency, retry behavior, units, and calculated cost. Select providers/configurations using a weighted decision record; do not select from advertised price alone.
@@ -1043,6 +2200,42 @@ Repeat the identical test after each material change.
 
 ## 13. Work package 10: Veterinary Medicine validation
 
+**Outcome:** a second program uses catalog configuration and the same authorization, processing, retrieval, safety, Studio, quiz, and operations paths without Human-Medicine assumptions.
+
+### 13.0 Tutorial procedure
+
+#### WP10-T01 — Configure the Veterinary catalog
+
+- [ ] Seed/configure Veterinary institution, program, level, term, cohort, edition, `SUBJECT` labels, and ordered units without adding a faculty-name code branch.
+
+#### WP10-T02 — Freeze Veterinary fixtures and evaluation
+
+- [ ] Create Veterinary-specific rights-approved fixtures and frozen evaluation cases for terminology, direct/partial/unavailable/conflict/hints, educational cases, real-patient boundary, Studio, and MCQ.
+
+#### WP10-T03 — Reuse collection and processing
+
+- [ ] Assign the Veterinary Batch Leader through the existing campaign flow and process PDF/audio through the existing job types/adapters.
+
+#### WP10-T04 — Prove bidirectional isolation
+
+- [ ] Run Human/Veterinary cross-scope canaries through database functions, services, APIs, chat, cache reuse, Studio, quiz, and admin preview.
+
+#### WP10-T05 — Audit Human-specific assumptions
+
+- [ ] Search code/prompts/tests for `human`, `medicine`, `module`, Human faculty/cohort names, and English-only assumptions; classify each occurrence as valid content/config/test or a defect.
+
+#### WP10-T06 — Remove invalid assumptions
+
+- [ ] Replace invalid assumptions with catalog/policy configuration, not a parallel pipeline.
+
+#### WP10-T07 — Run identical gates
+
+- [ ] Run identical quality, automation, replay, cost, and gate reports and compare results to Human Medicine.
+
+#### WP10-T08 — Review architectural reuse
+
+- [ ] Reviewer confirms there is one retrieval pool architecture, one processor contract, one Studio implementation, and data-driven terminology.
+
 1. Configure the program, level, term, cohort, and `SUBJECT` labels using catalog data only.
 2. Assign the Veterinary Batch Leader and run sources through the existing campaign flow.
 3. Process PDF/audio/professor material through the same job types.
@@ -1059,6 +2252,48 @@ Exit evidence:
 - No second retrieval pool architecture, pipeline, or Studio implementation was created.
 
 ## 14. Work package 11: Private beta
+
+**Outcome:** up to 100 verified students enter in controlled waves; each expansion is evidence-based, reversible, budget-limited, supported, and monitored.
+
+### 14.0 Tutorial procedure
+
+#### WP11-T01 — Freeze release candidate and go/no-go packet
+
+- [ ] Tag the exact commit/migrations/config/evaluation datasets/provider models.
+- [ ] Run security, retrieval, chat, Studio, automation, restore, and load gates on the release candidate.
+- [ ] Confirm rights inventory, source activation, raw deletion compliance, privacy/terms/boundary versions, retention, support, incident owners, alert delivery, quotas, and hard budgets.
+- [ ] Create `evidence/wp11-beta/<date>_go-no-go_beta_<sha>.md`; list every blocker and open risk.
+- [ ] Obtain two-person go approval. One owner cannot waive leakage, grounding, rights, deletion, or budget blockers.
+
+#### WP11-T02 — Prepare onboarding and support
+
+- [ ] Verify invitations go only to intended verified addresses/cohort memberships and expire.
+- [ ] Publish concise bilingual onboarding, source boundary, educational boundary, privacy/retention, feedback/reporting, and support instructions.
+- [ ] Test account creation, verification, consent, first unit, first chat, first artifact, first quiz, feedback, logout, account/data controls, and support escalation on mobile/desktop.
+- [ ] Prepare support response targets and issue categories without exposing ordinary chats.
+
+#### WP11-T03 — Release one wave at a time
+
+- [ ] Record planned users, start/end, owner, monitoring window, success/abort thresholds, and prior-wave review.
+- [ ] Invite only the current wave.
+- [ ] Monitor activation, errors, latency, queues, provider failures, grounding reports, deletion, budget, and support.
+- [ ] Reconcile accounts/usage/jobs/cost at the end of the observation window.
+- [ ] Expand only after a signed wave report; otherwise pause, contain, repair, regress, and repeat the same wave size.
+
+#### WP11-T04 — Run the weekly operating cycle
+
+- [ ] Execute frozen regressions before reviewing subjective feedback.
+- [ ] Review only reported/consented content under the retention/access policy.
+- [ ] Review source/job/deletion, performance/provider, usage/cost, product-value, and false-refusal metrics.
+- [ ] Separate defects, source gaps, UX friction, provider limitations, and out-of-scope requests.
+- [ ] Record every disable/fix/retry/release/expand decision and its evidence.
+
+#### WP11-T05 — Close beta with an explicit decision
+
+- [ ] Compare every technical gate and success signal with its target.
+- [ ] Report confidence/limitations, cohort differences, cost per meaningful action/student, operational intervention rate, and unresolved risks.
+- [ ] Decide `EXPAND`, `EXTEND_BETA`, `NARROW_SCOPE`, or `STOP`; name conditions and owners.
+- [ ] Do not interpret interviews about willingness to pay as authorization to add a manual payment workflow.
 
 ### 14.1 Before invitation
 
@@ -1101,6 +2336,34 @@ Pause expansion on leakage, unsupported material claims, concealed conflicts, de
 - Founders approve or reject post-PoC commercial expansion using collected evidence.
 
 ## 15. Work package 12: Post-PoC extension preparation
+
+**Outcome:** payments and video have approved extension contracts and threat/test plans, but are not smuggled into the free PoC scope.
+
+### 15.0 Tutorial procedure
+
+#### WP12-T01 — Prove extension boundaries
+
+- [ ] Prove provider interfaces, source kinds, job graph, processed-document contract, catalog, retrieval, chat, and Studio can accept a future video processor without schema duplication.
+
+#### WP12-T02 — Design video ingestion
+
+- [ ] Create a video design record covering rights, size/duration/cost preflight, temporary video/audio, timestamps/visual extraction, completeness, quality, deletion of both raw and derived temporary objects, and replay.
+
+#### WP12-T03 — Design automated payments
+
+- [ ] Create an automated-payment design record covering provider selection criteria, signed webhook verification, event uniqueness, order/entitlement state machine, append-only money ledger, reconciliation, refund/dispute, currency/amount verification, replay, and incident handling.
+
+#### WP12-T04 — Enforce PoC exclusions
+
+- [ ] Prohibit receipt uploads, founder approval queues, or editable balances in PoC migrations/routes.
+
+#### WP12-T05 — Add mock-only contract tests
+
+- [ ] Add contract tests using mocks only; do not provision payment/video providers until the post-PoC decision is approved.
+
+#### WP12-T06 — Review additive architecture
+
+- [ ] Reviewer confirms these are additive adapters/workflows, not a second knowledge or entitlement architecture.
 
 ### 15.1 Automated commercial payments
 
@@ -1192,16 +2455,155 @@ Before PoC completion, prove that source/job schemas and adapters can add this p
 
 ## 17. First execution session
 
-Perform only these actions in the first implementation session:
+The first session is a control session, not a race to call an AI provider. Timebox it only for scheduling; do not lower its completion criteria.
 
-1. Confirm the two candidate cohort records and dynamic unit labels.
-2. Create the source/rights inventory template and enter representative sources.
-3. Approve the raw lifecycle/deletion draft and budget draft.
-4. Create the tutor and Studio JSONL schemas with initial fixture cases.
-5. Create the repository, strict TypeScript app, directory boundaries, and environment schema.
-6. Configure deterministic provider mocks.
-7. Create the first database migration for extensions/enums only.
-8. Add CI commands for lint, type check, unit tests, migration reset, RLS integration, and build.
-9. Commit the architecture decision that the PoC is non-throwaway, strict-RAG-only, free beta, and always-on automated.
+### 17.1 Start the session
+
+- [ ] Name executor, independent reviewer, branch, and session goal.
+- [ ] Run workstation preflight from section 0.8.
+- [ ] Record existing working-tree changes and owners; do not overwrite them.
+- [ ] Create the planning/evidence directories from WP00-T01.
+- [ ] Copy `docs/templates/gate-report.md` to the WP00 evidence path and mark it `IN PROGRESS`.
+
+### 17.2 Establish decisions and safe fixtures
+
+- [ ] Create the decision register and copy D-01 through D-16.
+- [ ] Fill at least two realistic candidates for each program in the cohort-candidate template.
+- [ ] Enter representative native PDF, scanned PDF, normal audio, and professor voice-note rows in the rights inventory without uploading their files.
+- [ ] Draft exact raw/temporary/processed retention values and flag every unapproved value.
+- [ ] Draft total/weekly/action budgets; keep all paid enable flags false.
+- [ ] Create tutor/Studio JSON Schemas and at least one synthetic valid plus invalid case for every result/artifact type.
+
+### 17.3 Establish the application foundation
+
+- [ ] Pin Node 24 LTS patch and pnpm 10 patch.
+- [ ] Initialize the root Next.js application in place; do not replace planning documents.
+- [ ] Add strict TypeScript, formatting, lint, environment validation, and all script names defined in WP01-T01.
+- [ ] Create domain boundaries and deterministic mock provider contracts.
+- [ ] Initialize/start local Supabase and create the first migration using the pinned CLI.
+- [ ] Add synthetic seed data only.
+- [ ] Add CI for frozen install, format, lint, types, tests, database reset, generated-type diff, build, and smoke.
+- [ ] Write the non-throwaway/strict-RAG/free-beta/always-on architecture ADR and link the master plan.
+
+### 17.4 Verify and close
+
+- [ ] Run every currently implemented zero-cost check.
+- [ ] Reset the local database twice.
+- [ ] Search repository/build/log output for secret-like values.
+- [ ] Record incomplete commands as named WP01 tasks rather than claiming the foundation gate passed.
+- [ ] Review the diff and commit only a coherent, non-secret slice.
+- [ ] Update the decision register and gate report.
+- [ ] Stop the local stack if it is no longer needed.
 
 **Hard stop:** Do not enable a paid generation, embedding, OCR, or transcription provider; process real private source material; delete any raw source; or invite students until the corresponding rights, budget, evaluation data, durable job path, verification checks, and kill switch are approved.
+
+## 18. Command and verification catalog
+
+The final `package.json` must expose these stable project commands even if underlying tools change. This keeps CI, onboarding, and evidence consistent.
+
+| Command | Purpose | External/paid calls allowed? | Passing result |
+| --- | --- | --- | --- |
+| `pnpm dev` | Run the local Next.js app. | Mocks only by default. | App starts and readiness explains missing local dependencies. |
+| `pnpm build` | Create production web build. | No. | Exit 0 with no ignored type/lint failure. |
+| `pnpm lint` | Static code checks. | No. | Exit 0. |
+| `pnpm typecheck` | Strict TypeScript check without emit. | No. | Exit 0. |
+| `pnpm format:check` | Verify formatting. | No. | Exit 0 and no file rewrites. |
+| `pnpm test:unit` | Pure domain/config/provider-mock tests. | No. | Exit 0. |
+| `pnpm test:integration` | Database/services with local stack. | No. | Exit 0 against reset synthetic data. |
+| `pnpm test:security` | RLS/grant/scope/secret tests. | No. | Zero unexpected allow/leakage. |
+| `pnpm test:e2e` | Role-based browser flows. | Mocks unless explicitly named suite. | All critical journeys and forbidden paths pass. |
+| `pnpm test:eval` | Frozen retrieval/chat/Studio evaluation. | Only an explicitly approved real-provider profile; default mocks. | Dataset hashes valid and thresholds reported. |
+| `pnpm test:load` | Frozen load profile. | Never beta by default; approved target only. | Threshold report and reconciliation complete. |
+| `pnpm db:start` | Start local Supabase. | No. | Services healthy. |
+| `pnpm db:stop` | Stop local Supabase without deleting state. | No. | Services stopped cleanly. |
+| `pnpm db:reset` | Rebuild schema/seed from version control. | No. | All migrations/seed/tests succeed. |
+| `pnpm db:types` | Generate database TypeScript types. | No. | Output updates deterministically. |
+| `pnpm db:types:check` | Fail when committed types are stale. | No. | Generation causes no Git diff. |
+| `pnpm verify` | Complete zero-paid local merge gate. | No. | Every required subcommand exits 0. |
+
+If a command needs secrets or a paid provider, its name must say so, for example `test:eval:live-approved`; it must require an explicit environment profile, preflight budget, and confirmation guard. Never make `pnpm verify` spend money.
+
+## 19. Troubleshooting decision tree
+
+### 19.1 Clean clone does not install
+
+1. Confirm Node matches `.nvmrc` and pnpm matches `packageManager`.
+2. Confirm the command is `pnpm install --frozen-lockfile` and no competing lockfile exists.
+3. Delete/reinstall only generated dependency directories, never user source files.
+4. If the lockfile is invalid, repair dependencies on a separate branch and review the exact manifest/lock diff.
+
+### 19.2 Local Supabase does not start
+
+1. Run `docker version` and confirm the engine, disk, memory, and Linux-container mode.
+2. Run `pnpm supabase --help` and use the pinned CLI's diagnostic/status commands; do not guess flags from an old tutorial.
+3. Check port conflicts without killing unknown processes automatically.
+4. Preserve local migration files; stopping/restarting containers must not become a schema fix.
+5. If the local stack remains unavailable, mark migration/RLS tasks blocked and continue only with pure unit/UI mock tasks.
+
+### 19.3 Migration reset fails
+
+1. Identify the first failing migration and exact SQL error.
+2. Reproduce from a clean reset; do not patch the local database manually.
+3. Fix the unshared migration. If it has reached preview/beta, add a forward repair migration instead of rewriting history.
+4. Run populated-upgrade plus clean-reset paths.
+5. Regenerate types and inspect grants/RLS/advisors.
+
+### 19.4 Authorized query returns zero rows unexpectedly
+
+1. Confirm the object is exposed/granted to the caller role; Data API exposure and RLS are separate.
+2. Confirm session/user identity and token freshness.
+3. Inspect SELECT policy first; UPDATE also needs row visibility plus `WITH CHECK`.
+4. Test the exact caller/row state in the security fixture.
+5. Never add `security definer` merely to make the query work.
+
+### 19.5 Retrieval is slow or misses evidence
+
+1. Reproduce one frozen case and capture component scores plus query plan.
+2. Confirm identical authorization/source/config filters on keyword and vector branches.
+3. Confirm embedding model/dimensions/normalization and distance operator match stored vectors/index.
+4. Confirm vector ordering uses the distance expression and filters are applied before limiting.
+5. Compare exact search with HNSW to separate index-recall from embedding/chunking/query problems.
+6. Change one variable, rerun the identical suite, and record before/after.
+
+### 19.6 A provider times out
+
+1. Determine whether acceptance is known, rejected, or uncertain.
+2. Persist the typed outcome and provider request ID.
+3. On uncertain acceptance, reconcile provider status before issuing another paid call when supported.
+4. Keep reservation open/retry-safe until terminal resolution, then settle/release once.
+5. Let bounded retry/reconciliation act; do not manually duplicate the job.
+
+### 19.7 Raw deletion is uncertain
+
+1. Keep state unresolved and source not fully optimized.
+2. Independently query object metadata/listing; a successful delete response alone is insufficient.
+3. Append verification attempts and retry automatically.
+4. Escalate at the deletion deadline and use the incident runbook.
+5. Never delete the processed output or audit trail to “start over.”
+
+### 19.8 A grounding or leakage test fails
+
+1. Stop release expansion and disable the affected feature/source/scope.
+2. Preserve correlation, policy/model/source/config versions and minimal authorized evidence.
+3. Determine whether failure is RLS, server authorization, retrieval filtering, cache authorization, prompt/generation, or validation.
+4. Add the failing case to the frozen regression set without exposing private content.
+5. Fix, run the full security/evaluation suite, and obtain independent review before re-enable.
+
+## 20. Final release truth test
+
+Before anyone says “the PoC is ready,” a new reviewer must be able to answer **yes** to all of the following from evidence rather than verbal explanation:
+
+- [ ] Can a clean clone reproduce the app, database, fixtures, tests, and build?
+- [ ] Can every role's allowed and forbidden actions be traced to RLS/server tests?
+- [ ] Can every accepted factual answer/artifact be traced to active authorized evidence?
+- [ ] Can an unavailable/conflicting case be reproduced without hidden external knowledge?
+- [ ] Can every accepted source prove processed completeness and verified raw deletion/approved hold?
+- [ ] Can provider timeout, worker death, duplicate delivery, and replay occur without duplicate state/cost?
+- [ ] Can an operator disable a bad source/provider/feature/cohort quickly without deleting evidence?
+- [ ] Can the system restore database plus processed objects and rebuild/reconnect retrieval safely?
+- [ ] Can the exact 100-student workload be rerun inside the approved cost and performance envelope?
+- [ ] Can Veterinary Medicine pass through the same architecture with configuration-only terminology?
+- [ ] Can founders turn off their computers without stopping required workers/schedules?
+- [ ] Can beta expansion be paused and rolled back from documented controls?
+
+If any answer depends on “Ahmed/Ziad knows how,” the project is not yet production-shaped and the missing knowledge must be converted into code, configuration, a runbook, or reviewed evidence.

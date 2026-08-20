@@ -4,3 +4,5 @@
 - **Allowed dependencies:** Domain/application contracts and provider SDKs only inside `*.adapter.ts` or `adapters/`.
 - **Prohibited dependencies:** Public raw objects, signed-URL persistence, provider SDKs in domain/application files, and real deletion before its two-person gate.
 - **Owner:** The current storage task agent; the security/data owner reviews real storage and deletion behavior.
+
+`object-storage-provider.ts` owns the provider-neutral interface. `mocks/object-storage.mock.adapter.ts` is the deterministic zero-network implementation; future real adapters remain in `adapters/` and must pass the same contract tests.

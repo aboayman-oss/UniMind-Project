@@ -144,6 +144,7 @@ foreach ($file in Get-ChildItem -LiteralPath $taskRecordRoot -File -Filter '*.md
 $firstUnfinishedTask = $runbookTasks | Where-Object status -ne 'COMPLETE' | Select-Object -First 1
 $currentWorkPackage = if ($null -ne $firstUnfinishedTask) { $firstUnfinishedTask.workPackage } else { $null }
 $recommendedTask = $null
+$routingMode = 'strict-package-order'
 
 if ($null -ne $currentWorkPackage) {
   $currentPackageTasks = @($runbookTasks | Where-Object workPackage -eq $currentWorkPackage)
@@ -164,14 +165,52 @@ if ($null -ne $currentWorkPackage) {
       } |
       Select-Object -First 1
   }
+
+  # WP00 deliberately permits unresolved real choices when their mocks and
+  # downstream blockers have passed the constraints-only gate. That reviewed
+  # gate unlocks only the mock-only WP01 foundation, never a later package or
+  # a real adapter.
+  if ($null -eq $recommendedTask -and $currentWorkPackage -eq 'WP00') {
+    $wp00Gate = $runbookTasks | Where-Object taskId -eq 'WP00-T08' | Select-Object -First 1
+    if ($null -ne $wp00Gate -and $wp00Gate.status -eq 'COMPLETE') {
+      $wp01Tasks = @($runbookTasks | Where-Object workPackage -eq 'WP01')
+      $recommendedTask = $wp01Tasks |
+        Where-Object {
+          $_.status -eq 'IN_PROGRESS' -and
+          -not $blockedTaskIds.Contains($_.taskId) -and
+          -not $recordBlockedTaskIds.Contains($_.taskId)
+        } |
+        Select-Object -First 1
+
+      if ($null -eq $recommendedTask) {
+        $recommendedTask = $wp01Tasks |
+          Where-Object {
+            $_.status -eq 'NOT_STARTED' -and
+            -not $blockedTaskIds.Contains($_.taskId) -and
+            -not $recordBlockedTaskIds.Contains($_.taskId)
+          } |
+          Select-Object -First 1
+      }
+
+      if ($null -ne $recommendedTask) {
+        $currentWorkPackage = 'WP01'
+        $routingMode = 'reviewed-wp00-mock-bridge'
+      }
+    }
+  }
 }
 
 $recommendation = if ($null -ne $recommendedTask) {
+  $reason = if ($routingMode -eq 'reviewed-wp00-mock-bridge') {
+    'WP00-T08 passed the mock-only constraints gate; unresolved real choices remain blocked while the earliest eligible WP01 foundation task advances.'
+  } else {
+    "Earliest executable task in $currentWorkPackage after excluding failed, completed, decision-blocked, and record-blocked tasks."
+  }
   [pscustomobject][ordered]@{
     taskId = $recommendedTask.taskId
     title = $recommendedTask.title
     status = $recommendedTask.status
-    reason = "Earliest executable task in $currentWorkPackage after excluding failed, completed, decision-blocked, and record-blocked tasks."
+    reason = $reason
   }
 } else {
   $null
@@ -181,6 +220,7 @@ $openDecisions = @($decisions | Where-Object status -in @('Open', 'Proposed'))
 $state = [pscustomobject][ordered]@{
   generatedAtUtc = [DateTime]::UtcNow.ToString('o')
   currentWorkPackage = $currentWorkPackage
+  routingMode = $routingMode
   recommendedTask = $recommendation
   activeTaskRecords = @($taskRecords | Where-Object status -ne 'COMPLETE')
   openDecisions = $openDecisions
@@ -194,6 +234,7 @@ if ($Format -eq 'Json') {
 }
 
 Write-Output "Current work package: $($state.currentWorkPackage)"
+Write-Output "Routing mode: $($state.routingMode)"
 if ($null -eq $state.recommendedTask) {
   Write-Output 'Recommended task: NONE — every task in the current package is complete or blocked.'
 } else {

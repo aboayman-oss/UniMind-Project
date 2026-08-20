@@ -19,6 +19,8 @@ Use this workflow for every repository change. It is a routing document: product
 4. Copy `docs/templates/task-record.md` to `planning/tasks/wpNN-tyy-short-outcome.md` and fill every field. Use `UNASSIGNED — GATE BLOCKED` when safe execution can proceed but the reviewer is not yet named.
 5. Mark the selected checklist item `[~]`; mark a blocking item `[?]` with a linked decision or dependency.
 
+After reviewed WP00-T08 `PASS`, the work-state command may use the runbook's **WP00 mock bridge** to select WP01 while real-choice tasks remain blocked. Treat this as permission for synthetic data, deterministic mocks, local sinks, and zero paid capacity only.
+
 **Complete when:** exactly one task is claimed and its dependencies, files, verification, evidence, rollback, and hard stops are explicit.
 
 ## 3. Execute a recoverable slice

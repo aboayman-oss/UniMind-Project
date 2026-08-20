@@ -38,7 +38,7 @@ This repository contains the source-of-truth plan and executable delivery runboo
 
 ## Status
 
-The project is in planning and execution-readiness. Start at section 0 of the [execution runbook](docs/runbooks/poc-execution-runbook.md), complete work package 0 decisions, and then follow packages in dependency order. A package is complete only after its independent gate review passes.
+The project has a reviewed mock-only WP00 constraints gate. Open real-world decisions retain exact downstream blocks, while the synthetic/mock WP01 foundation may proceed through the runbook's WP00 mock bridge. Follow later packages in dependency order; a package is complete only after its independent gate review passes.
 
 For agent-led work, use the [agent workflow](docs/agents/agent-workflow.md). When a request does not name a task, it provides the rule for choosing the next executable task without guessing.
 

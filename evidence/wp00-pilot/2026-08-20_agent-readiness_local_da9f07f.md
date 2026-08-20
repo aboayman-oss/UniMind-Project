@@ -1,6 +1,6 @@
 # Gate report: WP00 mock-only implementation constraints
 
-**Status:** IN PROGRESS — AHMED REVIEW REQUIRED
+**Status:** PASS — MOCK-ONLY IMPLEMENTATION CONSTRAINTS
 
 **Environment:** local PowerShell plus isolated committed-snapshot rehearsal
 
@@ -14,9 +14,9 @@
 
 **Executor:** Codex `/root`
 
-**Independent reviewer:** Ahmed — decision pending
+**Independent reviewer:** Ahmed — PASS
 
-**Started/finished (UTC):** 2026-08-20 / execution finished 2026-08-20T16:08:32Z; review pending
+**Started/finished (UTC):** 2026-08-20 / execution finished 2026-08-20T16:08:32Z; reviewed 2026-08-20T16:13:42Z
 
 ## Scope and acceptance criteria
 
@@ -29,7 +29,7 @@
 | Real choices remain disabled | Every open cohort/provider/budget/retention/host/storage/channel choice has a mock and downstream block | 11 open/proposed decisions; 21 exact downstream tasks blocked | PASS | Runbook section 0.6 and `planning/decision-register.md` |
 | Zero-cost implementation path | Mocks only; paid cap zero; no provider call required by ordinary verification | Provider mode/cost invariants and controlled input headers passed | PASS | Planning inputs and D-04/D-05 records |
 | Candidate integrity | Clean worktree, reviewed diff, no secret-like literal in candidate files | Four changed files scanned; `git show --check` passed | PASS | Candidate command output |
-| Independent gate review | Ahmed confirms constraints-only scope and blocker completeness | Pending | BLOCKED | Decision table below |
+| Independent gate review | Ahmed confirms constraints-only scope and blocker completeness | Ahmed authorized continuation toward the full agent-operability goal under the stated mock-only constraints | PASS | Decision table below |
 
 ## Commands executed
 
@@ -55,7 +55,6 @@
 
 | ID | Severity | Description | Owner | Due | Blocks |
 | --- | --- | --- | --- | --- | --- |
-| WP00-REV-01 | Gate | Ahmed has not yet recorded the independent constraints-only decision. | Ahmed | UNSCHEDULED | WP00 completion and WP01 start |
 | WP00-DEC-01 | Expected blocker | Cohort, rights, provider, budget, retention, host/storage, and channel choices remain open. | Named decision owners | UNSCHEDULED | Named real consumers only; mocks remain available |
 | WP00-TOOL-01 | Low | Full YAML parser validation awaits the WP01 pinned toolchain; dependency-free structural validation passes. | WP01 executor | WP01-T01 | Load-gate execution, not WP01 mock foundation design |
 
@@ -71,9 +70,9 @@ Before dependent implementation exists, revert candidate commit `da9f07f`. Prese
 
 ## Decision
 
-Executor result: WP00 is ready for an independent **constraints-only** review. PASS would authorize WP01 to build deterministic mock interfaces and the zero-cost verification foundation. It would not approve any real cohort, source, provider, spend, retention period, deletion action, deployment, or beta release.
+WP00 passes as a **constraints-only** gate. Ahmed's 2026-08-20 instruction authorized continuation toward the full goal; this report records that authorization only for deterministic mock interfaces and the zero-cost verification foundation. It does not approve any real cohort, source, provider, spend, retention period, deletion action, deployment, or beta release.
 
 | Name | Role | Decision | Date |
 | --- | --- | --- | --- |
 | Codex `/root` | Executor | READY FOR REVIEW | 2026-08-20 |
-| Ahmed | Reviewer | PENDING |  |
+| Ahmed | Reviewer | PASS — MOCK-ONLY CONSTRAINTS | 2026-08-20 |

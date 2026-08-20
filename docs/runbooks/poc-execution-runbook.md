@@ -36,6 +36,8 @@ When a request does not name a task, select exactly one using this order:
 3. If that task is blocked, mark the blocking item `[?]` and link the decision or dependency. Advance an executable prerequisite when one exists; for a human-only blocker, record the tasks it blocks and select the earliest task that does not depend on it. Never cross an actual dependency merely because later work is easier.
 4. Before editing, create or update the task record required by section 0.10. Selection is complete only when one task ID, owner, reviewer state, expected files, verification, evidence path, and hard stops are explicit.
 
+**WP00 mock bridge:** a reviewed `PASS` for WP00-T08 may route selection to WP01 while unresolved real-choice tasks remain `[?]`, because WP01 uses their documented synthetic/mock interfaces. This bridge unlocks WP01 only. It never marks an open decision complete, enables a real adapter, or skips a dependency for WP02 or later.
+
 ### 0.2 Roles and the two-person rule
 
 Assign both names before starting a package:
@@ -323,7 +325,7 @@ Never delete audit, provenance, job-attempt, raw-deletion, provider-cost, or usa
 | Order | Work package | Dependency | Completion result |
 | --- | --- | --- | --- |
 | 0 | Pilot decision pack | None | Exact cohorts, rights, sources, budgets, load profile, and evaluation sets. |
-| 1 | Repository and environments | Package 0 constraints | Repeatable app, migrations, CI, preview, beta, and mock providers. |
+| 1 | Repository and environments | Reviewed WP00 mock-only constraints; open real choices retain their exact downstream blocks | Repeatable app, migrations, CI, preview, beta, and mock providers. |
 | 2 | Database and authorization | Package 1 | Generic catalog, access, content, RAG, Studio, usage, and RLS foundation. |
 | 3 | Product shell and release controls | Package 2 | Role-specific routes, filters, Module/Subject workspace, admin release controls. |
 | 4 | Automated source pipeline | Packages 1-3 | PDF/audio to verified compact text, unified pool, raw deletion, no routine intervention. |
@@ -469,11 +471,11 @@ Dataset schemas and manifests are implementation outputs of WP00-T05, not copies
 
 #### WP00-T08 — Run the package gate
 
-- [~] Prepare the WP00 gate task and create the evidence report after the candidate SHA exists.
-- [~] Check every artifact for owner, reviewer, status, version, link integrity, and explicit downstream blockers.
-- [~] Confirm no paid provider call, private source upload, raw deletion, or student invitation occurred.
-- [~] Keep the master-plan decision log and runbook synchronized; no open decision is represented as approved.
-- [?] Ahmed independently reviews the candidate-SHA evidence and records `PASS` only if mocks and every later-package blocker are explicit.
+- [x] Prepare the WP00 gate task and create the evidence report after the candidate SHA exists.
+- [x] Check every artifact for owner, reviewer, status, version, link integrity, and explicit downstream blockers.
+- [x] Confirm no paid provider call, private source upload, raw deletion, or student invitation occurred.
+- [x] Keep the master-plan decision log and runbook synchronized; no open decision is represented as approved.
+- [x] Ahmed independently reviewed the constraints-only packet and authorized mock-only WP01 progression on 2026-08-20.
 
 ### 3.1 Select exact pilot cohorts
 

@@ -2,13 +2,13 @@
 
 **Task ID:** WP00-T08
 
-**Status:** [?]
+**Status:** [x]
 
 **Outcome:** WP00 establishes reviewed implementation constraints: approved directions are usable, unresolved real choices are blocked behind named mocks, and WP01 may build without enabling real data or paid providers.
 
 **Owner:** Codex `/root`
 
-**Reviewer:** Ahmed — REVIEW REQUESTED
+**Reviewer:** Ahmed — PASS (MOCK-ONLY CONSTRAINTS)
 
 **Branch:** `main` (no delivery branch requested)
 
@@ -34,19 +34,19 @@
 
 ## Steps
 
-- [~] Remove the circular rule that made open decisions block their own blocker-completeness gate.
-- [~] Inspect WP00 artifacts and run zero-cost structural/handoff checks.
-- [~] Create candidate commit `da9f07f` and its commit-specific evidence report; ready for review.
-- [?] Obtain Ahmed's independent constraints-only gate decision.
+- [x] Remove the circular rule that made open decisions block their own blocker-completeness gate.
+- [x] Inspect WP00 artifacts and run zero-cost structural/handoff checks.
+- [x] Create candidate commit `da9f07f` and its commit-specific evidence report.
+- [x] Ahmed authorized mock-only WP01 progression on 2026-08-20; real choices remain unapproved.
 
 ## Handoff
 
 **Changed:** Corrected WP00-T08 routing and made the distinction between approving constraints and approving unresolved real choices explicit.
 
-**Commands:** Candidate `da9f07f` had a clean worktree. Work-state reports WP00-T08 review-blocked with 21 decision-blocked downstream tasks. Readiness passed with 56 governed names, 28 local links, 20 synchronized decisions, and 102 task contracts. The isolated committed-snapshot handoff passed with seven durable active records and no unsafe recommendation. Controlled-input, mock/zero-cost, candidate secret scan, and `git show --check` checks passed.
+**Commands:** Candidate `da9f07f` had a clean worktree. Readiness passed with synchronized decisions/task contracts, controlled-input and mock/zero-cost invariants, candidate secret scan, and `git show --check`. After Ahmed's review, the isolated handoff passed and the reviewed WP00 mock bridge selected WP01-T01 while 21 real-consumer tasks remained decision-blocked.
 
-**Remaining:** Ahmed's independent constraints-only gate decision and the review-result commit.
+**Remaining:** None for this constraints-only gate; unresolved real choices retain their named downstream blocks.
 
-**Next safe action:** Ahmed reviews `evidence/wp00-pilot/2026-08-20_agent-readiness_local_da9f07f.md` and records PASS or required changes.
+**Next safe action:** Claim WP01-T01 under deterministic mocks, synthetic data, local sinks, and zero paid capacity.
 
 **Reviewer action:** Confirm WP01 can use only synthetic data, deterministic provider/storage/queue/notification mocks, and zero paid capacity; confirm every real path remains blocked by its named decision.

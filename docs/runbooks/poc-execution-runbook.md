@@ -469,11 +469,11 @@ Dataset schemas and manifests are implementation outputs of WP00-T05, not copies
 
 #### WP00-T08 — Run the package gate
 
-- [ ] Use `docs/templates/gate-report.md` to create the WP00 gate report.
-- [ ] Check every artifact for owner, reviewer, status, version, and link integrity.
-- [ ] Confirm no paid provider call, private source upload, raw deletion, or student invitation occurred.
-- [ ] Update the master-plan decision log and this runbook when an approved decision changes a requirement.
-- [ ] Reviewer records `PASS` only when all later-package blockers are explicit.
+- [~] Prepare the WP00 gate task and create the evidence report after the candidate SHA exists.
+- [~] Check every artifact for owner, reviewer, status, version, link integrity, and explicit downstream blockers.
+- [~] Confirm no paid provider call, private source upload, raw deletion, or student invitation occurred.
+- [~] Keep the master-plan decision log and runbook synchronized; no open decision is represented as approved.
+- [?] Ahmed independently reviews the candidate-SHA evidence and records `PASS` only if mocks and every later-package blocker are explicit.
 
 ### 3.1 Select exact pilot cohorts
 

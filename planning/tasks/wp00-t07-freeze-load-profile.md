@@ -46,6 +46,6 @@
 
 **Remaining:** YAML parser validation, runner implementation, two reset-state executions, environment evidence, and independent review.
 
-**Next safe action:** No later WP00 task is safe until the named human decisions and reviews are supplied; once they are, an agent can resolve records and run WP00-T08.
+**Next safe action:** Run WP00-T08 to verify this draft remains mock-only and that runner/execution/review blockers are explicit; the gate must not approve the load result itself.
 
 **Reviewer action:** Confirm total action counts meet the master-plan minimums, failure phases are separate, aborts protect cost/environment, canaries are unique, and no real target/provider/data is implied.

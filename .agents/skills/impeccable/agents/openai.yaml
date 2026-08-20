@@ -1,0 +1,7 @@
+interface:
+  display_name: "Impeccable"
+  short_description: "Design and audit distinctive production UI"
+  default_prompt: "Use $impeccable to design, critique, audit, or polish this frontend."
+
+policy:
+  allow_implicit_invocation: true

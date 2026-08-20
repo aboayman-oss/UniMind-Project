@@ -35,6 +35,7 @@ out/
 coverage/
 playwright-report/
 test-results/
+*.tsbuildinfo
 
 # Local Supabase runtime state
 supabase/.branches/

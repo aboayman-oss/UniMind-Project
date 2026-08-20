@@ -4,6 +4,7 @@ Copy a template into the destination required by the execution runbook, rename i
 
 | Template | Use |
 | --- | --- |
+| `task-record.md` | Claim one atomic runbook task and preserve execution state for a fresh-agent handoff. |
 | `decision-record.md` | Close a product, architecture, provider, policy, or budget decision and record consequences/rollback. |
 | `cohort-candidates.csv` | Score Human and Veterinary cohort candidates using the required evidence model. |
 | `source-rights-inventory.csv` | Track one source per row and each permission independently. |
@@ -15,4 +16,3 @@ Copy a template into the destination required by the execution runbook, rename i
 | `incident-runbook.md` | Create and exercise a specific containment, repair, replay, and recovery procedure. |
 
 CSV files are UTF-8 with one header row. Do not paste multiline private content into them. YAML `FILL_ME` values are mandatory decisions; the load runner must reject a profile that still contains one.
-

@@ -632,6 +632,10 @@ Video adds a processor behind the existing pipeline; it must not create a separa
 | D-14 | Citations | Internal provenance mandatory; exact locator optional when reliable | Ahmed + Ziad | Approved direction |
 | D-15 | Automation | Always-on durable jobs/workers; no founder-machine dependency | Ahmed + Ziad | Approved direction |
 | D-16 | Video | Deferred processor using existing ingestion/pool contracts | Ahmed + Ziad | Approved direction |
+| D-17 | Queue transport and worker host | Database job table plus in-process test dispatcher until selected | Ahmed + Ziad | Open |
+| D-18 | Raw and processed object storage provider | Filesystem/in-memory test adapter with synthetic data until selected | Security/data owner (unassigned) | Open |
+| D-19 | Retention periods and deletion deadlines | Short synthetic-test values until exact periods are approved | Security/data owner (unassigned) | Open |
+| D-20 | Notification and incident channels | Local test sink until operational channels are approved | Ahmed + Ziad | Open |
 
 ## 16. Immediate actions
 

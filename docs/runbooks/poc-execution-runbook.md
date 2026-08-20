@@ -27,6 +27,15 @@ Use these markers in the working copy or project tracker:
 
 Never turn `[ ]` directly into `[x]`. The executor first marks `[~]`, performs the work and verification, attaches evidence, and then asks the gate reviewer to mark `[x]`.
 
+Derive task status from its checklist: all `[ ]` means not started; any `[~]`, or a mixture of completed and incomplete items, means in progress; all applicable items `[x]` plus linked reviewed evidence means complete. `[?]` and `[!]` take precedence over those derived states.
+
+When a request does not name a task, select exactly one using this order:
+
+1. Continue the earliest `[~]` task whose dependencies remain valid and whose current owner is available.
+2. Otherwise select the earliest `[ ]` task in the delivery order whose dependencies have reviewed `PASS` evidence and whose definition of ready is satisfied.
+3. If that task is blocked, mark the blocking item `[?]` and link the decision or dependency. Advance an executable prerequisite when one exists; for a human-only blocker, record the tasks it blocks and select the earliest task that does not depend on it. Never cross an actual dependency merely because later work is easier.
+4. Before editing, create or update the task record required by section 0.10. Selection is complete only when one task ID, owner, reviewer state, expected files, verification, evidence path, and hard stops are explicit.
+
 ### 0.2 Roles and the two-person rule
 
 Assign both names before starting a package:
@@ -40,6 +49,8 @@ Assign both names before starting a package:
 | Academic reviewer | Judges source completeness, conflicts, grounding, and educational-case quality. | Must not be replaced by an automated score. |
 
 For every work session, write the executor, reviewer, work package, branch, intended evidence, and hard-stop conditions at the top of the session note.
+
+The default delivery model is agent-first: a coding agent acts as executor and performs repository implementation, tests, documentation, verification, and sanitized evidence preparation. Humans remain responsible for product and governance decisions, academic judgment, approvals that require a person, and independent gate review. A missing human reviewer blocks gate completion, not safe preparatory work.
 
 ### 0.3 Definition of ready for any task
 
@@ -131,13 +142,13 @@ These are deliberately unresolved and must be closed in work package 0 before th
 
 | Decision | Placeholder behavior until approved | Blocking effect |
 | --- | --- | --- |
-| Exact Human and Veterinary cohorts | Synthetic catalog fixtures. | Blocks real source processing and invitation. |
-| Generation, embedding, OCR, and transcription providers/models | Deterministic mocks. | Blocks paid calls and final embedding schema dimensions. |
-| Queue transport and worker host | Database job table plus in-process test dispatcher. | Blocks always-on deployment, not domain implementation. |
-| Raw and processed object-storage provider | Filesystem/in-memory test adapter using synthetic data only. | Blocks private source upload. |
-| Total/weekly/action budgets | Zero-paid-work feature flags. | Blocks paid provider enablement. |
-| Retention periods and deletion deadlines | Short synthetic-test values only. | Blocks real user/source data. |
-| Notification and incident channels | Local test sink. | Blocks beta go-live. |
+| D-01/D-02/D-03 — Exact Human and Veterinary cohorts/institutions | Synthetic catalog fixtures. | Blocks real source processing and invitation. |
+| D-04 — Generation, embedding, OCR, and transcription providers/models | Deterministic mocks. | Blocks paid calls and final embedding schema dimensions. |
+| D-17 — Queue transport and worker host | Database job table plus in-process test dispatcher. | Blocks always-on deployment, not domain implementation. |
+| D-18 — Raw and processed object-storage provider | Filesystem/in-memory test adapter using synthetic data only. | Blocks private source upload. |
+| D-05 — Total/weekly/action budgets | Zero-paid-work feature flags. | Blocks paid provider enablement. |
+| D-08/D-09/D-19 — Retention periods and deletion deadlines | Short synthetic-test values only. | Blocks real user/source data. |
+| D-20 — Notification and incident channels | Local test sink. | Blocks beta go-live. |
 
 Do not hide one of these choices inside source code. Close it using `docs/templates/decision-record.md`, update the master-plan decision log, and record the configuration key used by the adapter.
 
@@ -239,13 +250,14 @@ If any command above does not exist yet, creating that script is part of work pa
 
 ### 0.10 Required task record format
 
-Every atomic implementation task added to an issue or session note must use this format:
+Every atomic implementation task must use `docs/templates/task-record.md`. Store the filled record at `planning/tasks/wpNN-tyy-short-outcome.md`; an external issue may mirror or link to it, but the committed record is the handoff authority. Use this core format:
 
 ```text
 Task ID: WPXX-TYY
+Status: [ ] | [~] | [?] | [x] | [!]
 Outcome: Student A cannot read Student B's chat rows.
 Owner: <name>
-Reviewer: <name>
+Reviewer: <name or UNASSIGNED — GATE BLOCKED>
 Dependencies: <earlier task IDs>
 Inputs: migration names, fixture users, policy decision
 Files: exact expected files
@@ -256,6 +268,8 @@ Evidence: expected evidence path
 Rollback: migration/flag/disable action
 Hard stop: conditions that prohibit continuation
 ```
+
+Update the record before handoff with changed files, exact commands and results, remaining work, and the next safe action. A fresh agent must be able to continue from the committed record and linked evidence without relying on chat history.
 
 An issue titled only “set up database,” “build RAG,” or “finish admin” is not executable and must be decomposed before work begins.
 
@@ -332,14 +346,43 @@ Do not start Studio generation before retrieval and strict-RAG answer contracts 
 
 ### 3.0 Tutorial procedure
 
+#### WP00-T00 — Establish agent-first delivery controls
+
+- [~] Define one short workflow from repository orientation through task selection, execution, verification, and handoff.
+- [~] Make coding agents the default executors while preserving human governance decisions and independent review.
+- [~] Add a controlled task-record template and a predictable `planning/tasks/` handoff location.
+- [~] Resolve documentation naming exceptions and give decision files one lowercase convention.
+- [~] Add and run a zero-cost check for required entry points, local links, names, task IDs, acceptance items, and task-record fields.
+- [~] Add a read-only work-state command that derives task status, separates decision resolution paths from blocked tasks, and recommends only an eligible task.
+- [~] Rehearse discovery, selection, readiness checks, and durable handoff from a clean isolated committed snapshot without copying chat state.
+- [?] Obtain independent review and commit-specific evidence; reviewer is unassigned.
+
+**Pass:** a fresh agent can select and claim the next valid task, find every governing authority, identify human-only gates, run the readiness check successfully, and resume this task from repository state without prior chat.
+
+**Evidence:** `evidence/wp00-pilot/<date>_agent-readiness_local_<short-sha>.md`.
+
 #### WP00-T01 — Create the planning workspace
 
-- [ ] Create `docs/decisions`, `docs/policies`, `planning`, `evals/datasets/tutor`, `evals/datasets/studio`, and `evidence/wp00-pilot`.
-- [ ] Copy the decision, rights, policy, dataset, load, and gate templates from `docs/templates` rather than creating unstructured notes.
-- [ ] Create `planning/decision-register.md` with one row per master-plan decision and columns `ID`, `decision`, `owner`, `due`, `status`, `record`, `blocks`, and `last reviewed`.
-- [ ] Copy D-01 through D-16 from the master plan. Keep approved directions approved; do not silently reopen them.
-- [ ] Add any implementation choice discovered during this package as D-17 onward.
-- [ ] Verify every `Open` or `Proposed` decision names the exact work-package tasks it blocks.
+- [~] Create `docs/decisions`, `docs/policies`, `planning/tasks`, `evals/datasets/tutor`, `evals/datasets/studio`, and `evidence/wp00-pilot` with scoped `README.md` files where Git needs a durable directory entry.
+- [~] Stage controlled inputs using this exact routing; preserve placeholders until the owning task supplies reviewed values:
+
+| Template source | Working destination | Owning task |
+| --- | --- | --- |
+| `docs/templates/cohort-candidates.csv` | `planning/cohort-candidates.csv` | WP00-T02 |
+| `docs/templates/source-rights-inventory.csv` | `planning/source-rights-inventory.csv` | WP00-T03 |
+| `docs/templates/raw-data-policy.md` | `docs/policies/raw-data-lifecycle.md` | WP00-T04 |
+| `docs/templates/provider-benchmark.csv` | `planning/provider-benchmark.csv` | WP00-T06/WP09-T01 |
+| `docs/templates/load-profile-100-students.yaml` | `planning/load-profile-100-students.yaml` | WP00-T07 |
+| `docs/templates/decision-record.md` | `docs/decisions/d-NN-short-subject.md` when a decision task starts | Decision-owning task |
+| `docs/templates/gate-report.md` | Required evidence filename after a candidate SHA exists | WP00-T08 |
+
+Dataset schemas and manifests are implementation outputs of WP00-T05, not copies of a generic template.
+
+- [~] Create `planning/decision-register.md` with columns `ID`, `decision`, `owner`, `due`, `status`, `record`, `resolution path`, `blocks`, and `last reviewed`. A decision's resolution task is allowed to proceed and must not also appear in its blocked-task list.
+- [~] Copy D-01 through D-16 from the master plan. Keep approved directions approved; do not silently reopen them.
+- [~] Add the unresolved choices already documented in section 0.6 as D-17 onward and synchronize the master-plan decision log.
+- [~] Verify every `Open` or `Proposed` decision names the exact work-package tasks it blocks, including when only the real-data or paid-adapter portion is blocked.
+- [?] Obtain owner deadlines and independent review; unresolved due dates remain explicit rather than invented.
 
 **Pass:** a reviewer can open one register and identify all open decisions, owners, deadlines, and blocked work.
 
@@ -347,15 +390,15 @@ Do not start Studio generation before retrieval and strict-RAG answer contracts 
 
 #### WP00-T02 — Select cohorts using evidence, not preference
 
-- [ ] Create `planning/cohort-candidates.csv` using UTF-8 and stable candidate IDs such as `HM-C01` and `VM-C01`.
-- [ ] Enter every candidate cohort before scoring. Do not add a favored cohort after seeing totals without recording the late addition.
-- [ ] Score each dimension 0-5 using written anchors: `0 = absent/blocking`, `1 = very weak`, `2 = weak`, `3 = adequate`, `4 = strong`, `5 = complete/verified`.
-- [ ] Add a `score_evidence` link for every score of 4 or 5 and a `remediation` field for every 0-2.
-- [ ] Have Ahmed and Ziad score independently, then reconcile differences of two or more points in a recorded review.
-- [ ] Reject a cohort regardless of total score if rights to provider processing/student use are denied, no accountable academic reviewer exists, or complete-enough source material is unavailable.
-- [ ] Create `docs/decisions/D-01-human-medicine-cohort.md` and `D-02-veterinary-medicine-cohort.md` from the decision template.
-- [ ] Assign stable catalog codes for institution, program, level, term, cohort, curriculum edition, and every unit. Codes are ASCII `lower_snake_case`; labels may be Arabic/English.
-- [ ] Obtain owner and reviewer sign-off.
+- [~] Create `planning/cohort-candidates.csv` using UTF-8 and stable candidate IDs such as `HM-C01` and `VM-C01`; the controlled header and ID contract are ready for review.
+- [?] Enter every candidate cohort before scoring; candidate facts have not been supplied by the decision owners.
+- [~] Score each dimension 0-5 using the written anchors in `planning/cohort-selection-review.md`; the scoring contract is ready for review.
+- [?] Add a `score_evidence` link for every score of 4 or 5 and a `remediation` field for every 0-2; no candidate rows exist yet.
+- [?] Have Ahmed and Ziad score independently, then reconcile differences of two or more points in a recorded review.
+- [?] Reject a cohort regardless of total score if rights to provider processing/student use are denied, no accountable academic reviewer exists, or complete-enough source material is unavailable.
+- [~] Create OPEN records at `docs/decisions/d-01-human-medicine-cohort.md`, `d-02-veterinary-medicine-cohort.md`, and `d-03-pilot-institutions.md`; no option is proposed or approved.
+- [?] Assign stable catalog codes for institution, program, level, term, cohort, curriculum edition, and every unit after selection. Codes are ASCII `lower_snake_case`; labels may be Arabic/English.
+- [?] Obtain owner and reviewer sign-off; deadlines and reviewers are unassigned.
 
 **Pass:** each selected cohort has a reproducible score, mandatory fields, ordered unit list, named Batch Leader, named academic reviewer, and no blocking right.
 
@@ -374,15 +417,15 @@ Do not start Studio generation before retrieval and strict-RAG answer contracts 
 
 #### WP00-T04 — Approve raw and processed data policy
 
-- [ ] Copy `docs/templates/raw-data-policy.md` to `docs/policies/raw-data-lifecycle.md`.
-- [ ] Fill exact durations; words such as “temporary,” “soon,” and “reasonable” are invalid without a number and starting event.
-- [ ] Define `delete_after` calculation, legal/rights hold authority, failed-conversion behavior, deletion verification, retry intervals, overdue severity, retained metadata, and takedown behavior.
-- [ ] Define the minimum accepted output separately for native PDF, scanned PDF, and audio.
-- [ ] State whether temporary normalized audio/OCR images may exist, where, and when they are deleted.
-- [ ] State that database backup does not back up Supabase Storage and define processed-object durability independently.
-- [ ] Write a data-flow diagram naming every storage location and external processor that can receive raw or processed content.
-- [ ] Review the policy against the rights inventory; remove any provider/storage path not covered by permission.
-- [ ] Record approval in D-09 and D-10.
+- [~] Create `docs/policies/raw-data-lifecycle.md` from the controlled template; the executable draft is ready for review.
+- [~] Define exact synthetic-test durations and starting events; real-data values remain blocked on D-19 owner input.
+- [~] Define `delete_after` calculation, hold behavior, failed conversion, deletion verification, retry intervals, overdue severity, retained metadata, and takedown behavior for deterministic tests.
+- [~] Define proposed minimum accepted output separately for native PDF, scanned PDF, and audio; D-10 approval remains open.
+- [~] Define temporary normalized audio/OCR storage and deletion behavior.
+- [~] State that database backup does not back up object storage and define processed-object durability independently.
+- [~] Add a data-flow diagram naming every logical storage location and the mock/real adapter boundary.
+- [?] Review every real provider/storage path against a completed rights inventory; no real source rows or provider decisions exist.
+- [?] Approve the D-10 processed contract and D-19 real retention/deletion values; D-09 remains the approved direction in the master plan.
 
 **Pass:** given any source state, the executor can determine whether raw data must be retained, deleted, retried, quarantined, or held, and who can authorize the exceptional state.
 
@@ -401,25 +444,26 @@ Do not start Studio generation before retrieval and strict-RAG answer contracts 
 
 #### WP00-T06 — Freeze budget and provider enablement rules
 
-- [ ] Copy `docs/templates/provider-benchmark.csv` and `docs/templates/decision-record.md` for D-04 and D-05.
-- [ ] Record currency and exchange-rate policy; never compare providers using mixed currencies without a dated conversion rate.
-- [ ] Fill total PoC, weekly, provider/action, source preflight, per-user daily, and single-request hard caps.
-- [ ] Name the people who may enable paid work and the two-person approval required for raising a hard cap.
-- [ ] Define alerts at 50/75/90%, hard-block behavior at 100%, settlement after provider timeouts, and treatment of already-accepted jobs.
-- [ ] Default every real adapter flag to false and set mock adapters as the only enabled providers.
-- [ ] Define a zero-cost smoke path that proves the application still behaves coherently when every paid provider is disabled.
+- [~] Stage the provider benchmark and create truthful OPEN D-04/D-05 records; implementation is ready for review.
+- [~] Define the currency/conversion evidence rule; canonical real currency and rate source remain owner inputs.
+- [?] Approve nonzero total, weekly, provider/action, source, per-user daily, and request caps.
+- [?] Name paid-enablement approvers, alert recipients, and the independent reviewer required to raise a cap.
+- [~] Define reservation, 50/75/90% alerts, 100% hard block, uncertain settlement, accepted-job treatment, and kill-switch behavior.
+- [~] Make the zero-cost profile authoritative: every real adapter flag is false and deterministic mocks are the only enabled providers.
+- [~] Define the zero-cost smoke story that must prove coherent behavior and a zero-valued cost ledger without provider network calls.
 
 **Pass:** a reviewer can trace a request from reservation through provider call to cost ledger and determine the exact automatic action at every threshold.
 
 #### WP00-T07 — Make the 100-student workload reproducible
 
-- [ ] Copy the load-profile template to `planning/load-profile-100-students.yaml`.
-- [ ] Define named phases: warm-up, realistic ramp, peak academic burst, background-ingestion overlap, provider slowdown, worker death, cooldown, and reconciliation.
-- [ ] Specify duration, virtual users, arrival rate, think-time distribution, request mix, payload size, and concurrency for every phase.
-- [ ] Give each synthetic cohort/unit a unique canary phrase for leakage detection.
-- [ ] Define success thresholds for HTTP success, first token, full response, queue age, job completion, database connections, unsettled reservations, duplicates, leakage, and total cost.
-- [ ] Define abort thresholds that protect the environment and provider budget.
-- [ ] Record the random seed and dataset version so repeated runs are comparable.
+- [~] Populate `planning/load-profile-100-students.yaml` as an exact synthetic local-mock contract; ready for runner implementation and review.
+- [~] Define warm-up, realistic ramp, peak academic burst, background-ingestion overlap, provider slowdown, worker death, cooldown, and reconciliation as separate phases.
+- [~] Specify duration, virtual users, arrival rate, think time, request counts, payload sizes, and concurrency for every phase.
+- [~] Give each synthetic cohort/unit a unique canary phrase for leakage detection.
+- [~] Define success thresholds for HTTP success, first token, full response, queue age, job completion, database connections, reservations, duplicates, leakage, and zero cost.
+- [~] Define immediate abort thresholds for leakage, duplicate settlement, lost accepted work, cost, errors, queue age, database pressure, and environment health.
+- [~] Freeze the random seed and synthetic dataset/fixture contract version.
+- [?] Implement the WP09 load runner, execute this profile on an approved target, and obtain independent gate review.
 
 **Pass:** another executor can reproduce the same scenario without asking what “100 concurrent students” means.
 
@@ -720,9 +764,9 @@ git diff --exit-code -- src/types/database.generated.ts
 
 **Pass:** data, keys, callbacks, jobs, and budgets cannot cross preview/beta; the same commit and migrations can reproduce both.
 
-#### WP01-T10 — Write the daily developer tutorial
+#### WP01-T10 — Write the repository operation tutorial
 
-- [ ] Add `CONTRIBUTING.md` containing workstation setup, clone, install, local stack, environment, reset, test, branch, PR, migration, and troubleshooting instructions.
+- [ ] Add `CONTRIBUTING.md` containing workstation setup, clone, install, local stack, environment, reset, test, branch, PR, migration, and troubleshooting instructions for human and agent executors.
 - [ ] Add a command table with purpose, paid-call behavior, required services, and expected duration class.
 - [ ] Include the normal daily loop:
 
@@ -743,9 +787,9 @@ pnpm db:stop
 ```
 
 - [ ] Include recovery for occupied ports, stopped Docker, stale generated types, migration drift, invalid env, and a leaked local token.
-- [ ] Have a reviewer follow `CONTRIBUTING.md` on a clean clone without verbal help and record every ambiguity.
+- [ ] Have a fresh agent follow `CONTRIBUTING.md` on a clean clone without chat history or verbal help; have the reviewer record every ambiguity.
 
-**Pass:** the clean-clone rehearsal reaches the app, local database, tests, and build using the document alone.
+**Pass:** the clean-clone rehearsal reaches the app, local database, tests, and build using repository instructions alone, and the fresh agent produces a complete task handoff.
 
 #### WP01-T11 — Run the package gate
 

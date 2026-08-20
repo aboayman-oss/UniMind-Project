@@ -3,6 +3,7 @@
 ## Start with the governing material
 
 - Read `README.md` for the repository map.
+- For task selection, execution, verification, or handoff, follow `docs/agents/agent-workflow.md`; it is the short operational path through the authorities below.
 - For product scope, architecture, safety, or policy, read the relevant section of `docs/plans/poc-master-plan.md`; it is the active English planning authority.
 - For execution, map the request to a work package and task in `docs/runbooks/poc-execution-runbook.md`, then follow that task's dependencies, verification, evidence, rollback, and hard stops.
 - Read `CONTEXT.md` when naming domain concepts or changing domain behavior. Record a durable architecture choice in `docs/adr/` only when alternatives, a chosen direction, and consequences are known.
@@ -19,6 +20,7 @@
 ## Work from evidence, not assumptions
 
 - The repository is currently in planning and execution-readiness. Infer progress from committed artifacts and reviewed evidence; unchecked runbook items are not complete.
+- Agents are the default executors for implementation, tests, documentation, automation, and evidence preparation. Humans retain product, security/data, academic, and release decisions plus the independent reviews required by the two-person rule.
 - Execute work packages in dependency order. Do not enable work blocked by an open decision; use the documented mock or interface until the decision is approved.
 - Before editing, inspect `git status` and preserve unrelated user changes.
 - Implement the smallest independently reviewable end-to-end slice. Keep the diff limited to the named work-package outcome.
@@ -65,7 +67,7 @@
 - Put approved product, scope, architecture, quality, capacity, or operating-policy changes in the master plan and keep the execution runbook synchronized.
 - Put product/provider/policy decisions in `docs/decisions/`, policies in `docs/policies/`, architecture decisions in `docs/adr/`, repeatable operations in `docs/runbooks/`, and reusable blank forms in `docs/templates/`.
 - Record unresolved choices as decisions with owners and blocking effects. Do not bury them as source-code defaults.
-- Keep new filenames lowercase kebab-case except the conventional root files `AGENTS.md` and `CONTEXT.md`.
+- Keep authored filenames lowercase kebab-case. Preserve conventional uppercase entry points such as `README.md`, `AGENTS.md`, `CONTEXT.md`, `CONTRIBUTING.md`, `DESIGN.md`, and `PRODUCT.md`; evidence reports follow the runbook's dated underscore format.
 
 ## Repository skills
 

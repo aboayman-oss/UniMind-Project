@@ -53,4 +53,3 @@ thresholds:
   maximum_leakage_events: 0
   maximum_duplicate_business_events: 0
   maximum_total_cost: FILL_ME
-

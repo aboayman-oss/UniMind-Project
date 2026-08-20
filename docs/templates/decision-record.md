@@ -1,14 +1,14 @@
 # Decision <ID>: <title>
 
-**Status:** PROPOSED | APPROVED | REJECTED | SUPERSEDED
+**Status:** OPEN | PROPOSED | APPROVED | REJECTED | SUPERSEDED
 
 **Owner:** <name>
 
 **Reviewers:** <names>
 
-**Decision deadline:** <YYYY-MM-DD>
+**Decision deadline:** <YYYY-MM-DD or UNSCHEDULED — OWNER INPUT REQUIRED>
 
-**Last reviewed:** <YYYY-MM-DD>
+**Last reviewed:** <YYYY-MM-DD or NOT RECORDED>
 
 **Blocks:** <task IDs>
 
@@ -59,4 +59,3 @@ State exactly what is approved, including version/configuration/limits where app
 | Name | Role | Decision | Date |
 | --- | --- | --- | --- |
 |  |  |  |  |
-

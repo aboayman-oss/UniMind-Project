@@ -8,6 +8,8 @@
 
 **Version/effective date:** <value / YYYY-MM-DD>
 
+**Blocks:** <task IDs until approval>
+
 ## Scope and definitions
 
 Define raw source, temporary derived object, processed document, locator, segment, metadata, legal/rights hold, deletion deadline, verified deletion, quarantine, and takedown.
@@ -72,4 +74,3 @@ Define who may place/remove a hold, evidence/reason, expiry/review, immediate re
 | Name | Role | Decision | Date |
 | --- | --- | --- | --- |
 |  |  |  |  |
-

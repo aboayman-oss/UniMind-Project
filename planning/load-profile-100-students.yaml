@@ -1,0 +1,156 @@
+schema_version: 1
+profile_id: unimind-100-student-v1
+status: DRAFT_SYNTHETIC
+dataset_version: synthetic-load-fixtures-v1
+random_seed: 20260816
+target_environment: local-mock
+provider_mode: mock
+clock_mode: virtual-for-injected-failures
+user_population:
+  total: 100
+  synthetic_id_prefix: load-user
+  cohorts:
+    - cohort_id: synthetic-human-2026
+      users: 50
+      unit_id: synthetic-human-cardiology
+      canary_phrase: UM-CANARY-HM-CARDIO-7F3A
+    - cohort_id: synthetic-veterinary-2026
+      users: 50
+      unit_id: synthetic-veterinary-anatomy
+      canary_phrase: UM-CANARY-VM-ANATOMY-9C2D
+payloads:
+  chat_request_bytes: 1024
+  studio_request_bytes: 2048
+  quiz_submission_bytes: 1024
+  feedback_bytes: 512
+  native_pdf_bytes: 1048576
+  audio_bytes: 5242880
+  audio_duration_seconds: 600
+hard_abort:
+  leakage_events: 0
+  duplicate_settlements: 0
+  lost_accepted_jobs: 0
+  maximum_cost: 0
+  maximum_interactive_error_rate: 0.05
+  error_window_seconds: 30
+  maximum_queue_age_ms: 120000
+  maximum_database_connections: 50
+  consecutive_environment_health_failures: 3
+phases:
+  - name: warm_up
+    duration_seconds: 120
+    virtual_users: 10
+    arrival_rate_per_second: 0.2
+    concurrency_limit: 10
+    think_time_ms:
+      distribution: uniform
+      minimum: 1000
+      maximum: 3000
+    actions:
+      login_catalog: 10
+      subject_open: 10
+      chat_submit: 10
+  - name: realistic_ramp
+    duration_seconds: 1200
+    virtual_users: 100
+    arrival_rate_per_second: 0.083333
+    concurrency_limit: 40
+    think_time_ms:
+      distribution: uniform
+      minimum: 3000
+      maximum: 12000
+    actions:
+      login_catalog: 100
+      subject_open: 100
+      chat_submit: 300
+      studio_request: 50
+      quiz_attempt: 100
+      feedback: 50
+  - name: peak_academic_burst
+    duration_seconds: 180
+    virtual_users: 50
+    arrival_rate_per_second: 2
+    concurrency_limit: 50
+    think_time_ms:
+      distribution: uniform
+      minimum: 500
+      maximum: 2000
+    actions:
+      subject_open: 50
+      chat_submit: 100
+      studio_request: 20
+      quiz_attempt: 50
+  - name: background_ingestion_overlap
+    duration_seconds: 300
+    virtual_users: 25
+    arrival_rate_per_second: 0.5
+    concurrency_limit: 30
+    think_time_ms:
+      distribution: uniform
+      minimum: 1000
+      maximum: 5000
+    actions:
+      pdf_ingestion: 1
+      audio_ingestion: 1
+      chat_submit: 50
+      studio_request: 10
+  - name: provider_slowdown
+    duration_seconds: 180
+    virtual_users: 25
+    arrival_rate_per_second: 0.5
+    concurrency_limit: 30
+    think_time_ms:
+      distribution: uniform
+      minimum: 1000
+      maximum: 5000
+    actions:
+      provider_slowdown: 1
+      chat_submit: 30
+      studio_request: 10
+  - name: worker_death
+    duration_seconds: 180
+    virtual_users: 25
+    arrival_rate_per_second: 0.5
+    concurrency_limit: 30
+    think_time_ms:
+      distribution: uniform
+      minimum: 1000
+      maximum: 5000
+    actions:
+      worker_termination: 1
+      chat_submit: 30
+      quiz_attempt: 25
+  - name: cooldown
+    duration_seconds: 120
+    virtual_users: 0
+    arrival_rate_per_second: 0
+    concurrency_limit: 0
+    think_time_ms:
+      distribution: fixed
+      value: 0
+    actions:
+      wait_for_accepted_work: 1
+  - name: reconciliation
+    duration_seconds: 300
+    virtual_users: 0
+    arrival_rate_per_second: 0
+    concurrency_limit: 1
+    think_time_ms:
+      distribution: fixed
+      value: 0
+    actions:
+      reconcile_jobs_usage_cost: 1
+thresholds:
+  interactive_success_rate: 0.99
+  chat_first_token_p50_ms: 5000
+  chat_first_token_p95_ms: 12000
+  chat_full_response_p95_ms: 30000
+  maximum_queue_age_ms: 30000
+  accepted_background_job_success_rate: 1.0
+  maximum_accepted_job_completion_ms: 120000
+  maximum_database_connections: 40
+  maximum_unsettled_reservations_after_cooldown: 0
+  maximum_leakage_events: 0
+  maximum_duplicate_business_events: 0
+  maximum_lost_accepted_jobs: 0
+  maximum_total_cost: 0

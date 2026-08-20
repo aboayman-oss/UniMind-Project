@@ -1,0 +1,21 @@
+# Provider budget review
+
+**Status:** BLOCKED — OWNER INPUT REQUIRED
+
+This is the complete human-input list for D-04/D-05. Agents own validation, calculations, configuration, tests, and evidence after these inputs exist.
+
+| Input | Required form |
+| --- | --- |
+| Decision deadlines | `YYYY-MM-DD` for D-04 and D-05 |
+| Canonical currency | One ISO 4217 code plus dated exchange-rate source/evidence rule |
+| Hard caps | Total PoC, weekly, each provider/action, source preflight, per-user daily, and single request; each with amount, currency, scope, and period/start event |
+| Paid-enablement authority | Two named accountable approvers and an independent budget/kill-switch reviewer |
+| Alert delivery | Approved D-20 recipients/channels for 50%, 75%, 90%, and 100% events |
+| Provider candidates | Provider/model/config/region per action, after rights and frozen evaluation data exist |
+| Confirmation guard | Exact approved live environment profile and deliberate command-time confirmation mechanism |
+
+After input, an agent validates one currency basis, rejects missing scopes, computes dated conversions, fills the benchmark, tests reservation/settlement and kill switches, updates D-04/D-05, and assembles candidate-SHA evidence. Approval is never inferred from a populated table.
+
+## Zero-cost smoke story
+
+With all real flags false and deterministic mocks enabled, submit synthetic native-PDF, scanned-PDF, audio, supported/unavailable chat, and one Studio request. The app must complete or return its documented controlled state, emit no provider-network request, use no credentials, and reconcile every reservation/usage/cost total to zero.

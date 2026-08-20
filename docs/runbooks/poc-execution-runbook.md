@@ -716,13 +716,13 @@ git diff --exit-code -- src/types/database.generated.ts
 
 #### WP01-T06 — Implement provider interfaces and deterministic mocks
 
-- [~] Create one file per interface listed in section 4.6 and a shared normalized `ProviderResult`, `ProviderUsage`, and typed error taxonomy.
-- [~] Define errors at minimum as `INVALID_INPUT`, `UNAUTHORIZED`, `RIGHTS_BLOCKED`, `RATE_LIMITED`, `TIMEOUT_UNKNOWN`, `PROVIDER_UNAVAILABLE`, `CONTENT_REJECTED`, `MALFORMED_OUTPUT`, and `BUDGET_BLOCKED`.
-- [~] Every call accepts correlation ID, idempotency key, timeout, and abort signal where supported.
-- [~] Every result records provider, model/config version, request ID when present, input/output units, duration, attempt, status, and calculated cost.
-- [~] Create deterministic mock adapters keyed by fixture/case ID. They must simulate success, latency, rate limit, timeout-before-accept, timeout-after-accept, malformed output, and terminal rejection.
-- [~] Add contract tests that run against every mock and later against every real adapter.
-- [~] Ensure importing a real adapter while its flag is false cannot make a network call during tests/build.
+- [x] Create one file per interface listed in section 4.6 and a shared normalized `ProviderResult`, `ProviderUsage`, and typed error taxonomy.
+- [x] Define errors at minimum as `INVALID_INPUT`, `UNAUTHORIZED`, `RIGHTS_BLOCKED`, `RATE_LIMITED`, `TIMEOUT_UNKNOWN`, `PROVIDER_UNAVAILABLE`, `CONTENT_REJECTED`, `MALFORMED_OUTPUT`, and `BUDGET_BLOCKED`.
+- [x] Every call accepts correlation ID, idempotency key, timeout, and abort signal where supported.
+- [x] Every result records provider, model/config version, request ID when present, input/output units, duration, attempt, status, and calculated cost.
+- [x] Create deterministic mock adapters keyed by fixture/case ID. They must simulate success, latency, rate limit, timeout-before-accept, timeout-after-accept, malformed output, and terminal rejection.
+- [x] Add contract tests that run against every mock and later against every real adapter.
+- [x] Ensure importing a real adapter while its flag is false cannot make a network call during tests/build.
 
 **Pass:** the full product can exercise accepted, retryable, terminal, and uncertain provider paths with network disabled.
 

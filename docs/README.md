@@ -16,7 +16,8 @@ This directory separates authoritative plans, executable procedures, and reusabl
 - [Agent workflow](agents/agent-workflow.md) — the short path from repository orientation through task selection, execution, verification, and handoff.
 - [Skills guide](agents/skills-guide.md) — skill routing and copy-ready invocation examples.
 - [UI design stack](agents/ui-design-stack.md) — the approved UI design workflow and its authority boundaries.
-- [English profile](agents/english-profile.md) — project communication preferences.
+- [Communication profiles](agents/communication-profiles.md) — speaker selection and chat-experience boundaries for Ahmed and Ziad.
+- [Ahmed's English profile](agents/english-profile.md) — Ahmed's default communication preferences and optional vocabulary notes.
 
 ## Templates
 

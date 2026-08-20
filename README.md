@@ -12,7 +12,7 @@ This repository contains the source-of-truth plan and executable delivery runboo
 - [Repository skills](.agents/skills/README.md) — audited, pinned workflows available to Codex in this repository.
 - [Skills guide](docs/agents/skills-guide.md) — which skills run automatically, which to call, and copy-ready examples.
 - [UI design stack](docs/agents/ui-design-stack.md) — why Impeccable was selected, how DESIGN.md and the Vercel review fit, and the UI workflow.
-- [English profile](docs/agents/english-profile.md) — persistent communication preferences and optional vocabulary notes.
+- [Communication profiles](docs/agents/communication-profiles.md) — chat-language and intent-support routing for Ahmed and Ziad; core execution remains shared.
 - [Planning workspace](planning/README.md) — durable in-progress task records, decision status, and controlled planning inputs.
 - [Evaluation assets](evals/README.md) — versioned synthetic datasets, manifests, schemas, and safe reports.
 - [Egyptian-Arabic plan](docs/plans/poc-master-plan-ar-eg.html) — rendered Arabic companion for easier project communication.

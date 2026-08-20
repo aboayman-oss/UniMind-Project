@@ -9,13 +9,11 @@
 - Read `CONTEXT.md` when naming domain concepts or changing domain behavior. Record a durable architecture choice in `docs/adr/` only when alternatives, a chosen direction, and consequences are known.
 - The Egyptian-Arabic HTML plan is a communication companion. The English Markdown master plan is authoritative.
 
-## Communicate with Ahmed in clear English
+## Separate core execution from chat experience
 
-- Use English by default and follow `docs/agents/english-profile.md`. Switch to Arabic only when Ahmed asks.
-- Treat grammar and spelling mistakes as noise when the intended meaning is clear. Correct English only on request.
-- Keep the technical level high. Define an uncommon term the first time it matters, use literal wording, and preserve canonical terms from `CONTEXT.md`.
-- When wording has two materially different meanings, state the likely interpretation and ask one short question while continuing any safe work that does not depend on it.
-- Use the clear-English skill when language blocks understanding or expression. `$wait-what` is Ahmed's explicit command to re-explain the previous message from the missing context.
+- At the first user message of each new chat, select the speaker profile. Select Ziad only when the user explicitly identifies himself as Ziad; otherwise select Ahmed. Do not infer identity from language, topic, writing style, or a previous chat. Keep the selected profile for the chat unless the user explicitly corrects the identity.
+- Apply the selected profile from `docs/agents/communication-profiles.md` to conversation wording, explanation, and intent clarification only.
+- Keep one universal execution path for Ahmed and Ziad: use the same governing material, reasoning standards, skills, implementation steps, safety and permission boundaries, verification, evidence, and output-quality bar. The speaker profile never selects, rewrites, skips, or weakens a skill or project rule.
 
 ## Work from evidence, not assumptions
 

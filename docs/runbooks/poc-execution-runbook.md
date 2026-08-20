@@ -673,7 +673,7 @@ pnpm build
 
 #### WP01-T04 — Start versioned Supabase local development
 
-- [ ] Confirm Docker is healthy and discover the installed CLI rather than relying on remembered syntax:
+- [?] Confirm Docker is healthy and discover the installed CLI rather than relying on remembered syntax. Blocked by disabled firmware virtualization plus missing WSL2/Docker Desktop; see `planning/tasks/wp01-t04-start-local-supabase.md`.
 
 ```powershell
 pnpm supabase --version
@@ -704,7 +704,7 @@ git diff --exit-code -- src/types/database.generated.ts
 
 #### WP01-T05 — Implement safe Supabase clients and auth refresh
 
-- [ ] Create `src/lib/db/supabase/browser.ts` using the publishable key only.
+- [?] Create `src/lib/db/supabase/browser.ts` using the publishable key only. Blocked on the reproducible local Auth/database stack in WP01-T04; see `planning/tasks/wp01-t05-implement-safe-supabase-clients.md`.
 - [ ] Create `src/lib/db/supabase/server.ts` using `@supabase/ssr` and the current Next.js cookie API.
 - [ ] Create `src/lib/db/supabase/admin.ts` as server-only; expose narrow privileged functions instead of exporting the raw service client widely.
 - [ ] Implement the current Supabase SSR session-refresh pattern in the current Next.js request interception convention. In Next.js 16+, follow the `proxy.ts` convention rather than copying old `middleware.ts` tutorials.

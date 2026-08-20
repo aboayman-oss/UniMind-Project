@@ -44,10 +44,10 @@
 
 **Changed:** Added one root tutorial covering orientation, pinned setup, safe environment handling, current/daily/end-session loops, all 21 package commands, branch/PR/migration flow, handoff content, and every named recovery case; linked it from the repository map.
 
-**Commands:** Agent readiness passes with the new link; all 21 package scripts are documented; placeholder/TODO scan found only the controlled evidence-filename pattern; `git diff --check` passes. The first `pnpm verify` found CONTRIBUTING formatting, then the formatted rerun passed format, lint, strict types, boundaries, 136 unit tests, and the synthetic production build.
+**Commands:** Agent readiness passes with 78 names, 31 links, 20 synchronized decisions, and 102 task contracts; all 21 package scripts are documented; placeholder/TODO scan found only the controlled evidence-filename pattern; `git diff --check` passes. The first `pnpm verify` found CONTRIBUTING formatting, then the formatted rerun passed format, lint, strict types, boundaries, 136 unit tests, and the synthetic production build. Candidate `9ab8e2c` passed `git show --check` and the isolated committed-snapshot rehearsal with a clean worktree and no structural ambiguity.
 
-**Remaining:** Candidate diff review, commit, and isolated structural handoff; final database/app tutorial rehearsal after WP01-T04.
+**Remaining:** Final database/app tutorial rehearsal and review after WP01-T04.
 
-**Next safe action:** Commit the tutorial candidate and rehearse clean-snapshot discovery; keep the task blocked until Docker/Supabase enables the complete walkthrough.
+**Next safe action:** Keep this task blocked until Docker/Supabase enables the complete clean-clone database/app walkthrough.
 
 **Reviewer action:** Review command parity, safety, clarity, links, recovery paths, and clean-snapshot ambiguity report; defer PASS until WP01-T04 enables the complete walkthrough.

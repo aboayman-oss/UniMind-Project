@@ -795,7 +795,7 @@ pnpm db:stop
 
 #### WP01-T11 — Run the package gate
 
-- [ ] Copy the gate template to `evidence/wp01-foundation`.
+- [?] Copy the gate template to `evidence/wp01-foundation`. The package gate is blocked on WP01-T04/T05/T07/T08/T09/T10; see `planning/tasks/wp01-t11-run-package-gate.md`.
 - [ ] Run `pnpm verify` from a clean clone with network access blocked for provider endpoints.
 - [ ] Reset the database twice and compare generated types.
 - [ ] Deploy preview from the candidate SHA and run smoke tests.

@@ -12,6 +12,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
+    "check:boundaries": "tsx scripts/check-module-boundaries.ts",
     "typecheck": "tsc --noEmit",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
@@ -26,7 +27,7 @@
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local --schema public > src/types/database.generated.ts",
     "db:types:check": "git diff --exit-code -- src/types/database.generated.ts",
-    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:unit && pnpm build"
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm check:boundaries && pnpm test:unit && pnpm build"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.4",

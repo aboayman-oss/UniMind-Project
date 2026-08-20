@@ -1,6 +1,6 @@
 # UniMind PoC
 
-This repository contains the source-of-truth plan and executable delivery runbook for the UniMind proof of concept.
+This repository contains the source-of-truth plan, executable delivery runbook, and strict TypeScript application foundation for the UniMind proof of concept.
 
 ## Contents
 
@@ -9,6 +9,8 @@ This repository contains the source-of-truth plan and executable delivery runboo
 - [Agent instructions](AGENTS.md) — always-on repository rules for Codex and compatible coding agents.
 - [Agent workflow](docs/agents/agent-workflow.md) — deterministic path for selecting, executing, verifying, and handing off work.
 - [Domain context](CONTEXT.md) — shared UniMind vocabulary and relationships for discussion, code, tests, and decisions.
+- [Product context](PRODUCT.md) — compact confirmed product truth for implementation and UI workflows.
+- [Module boundaries](docs/agents/module-boundaries.md) — file naming, dependency directions, ownership, and the automated architecture check.
 - [Repository skills](.agents/skills/README.md) — audited, pinned workflows available to Codex in this repository.
 - [Skills guide](docs/agents/skills-guide.md) — which skills run automatically, which to call, and copy-ready examples.
 - [UI design stack](docs/agents/ui-design-stack.md) — why Impeccable was selected, how DESIGN.md and the Vercel review fit, and the UI workflow.
@@ -32,6 +34,11 @@ This repository contains the source-of-truth plan and executable delivery runboo
 ├── evals/            # Versioned evaluation schemas, fixtures, manifests, and reports.
 ├── evidence/         # Sanitized gate reports and restricted-evidence links.
 ├── scripts/          # Zero-cost repository checks and local automation.
+├── src/              # Next.js routes plus domain/application/adapter modules.
+├── workers/          # Durable worker composition roots.
+├── supabase/         # Versioned local database configuration and migrations.
+├── tests/            # Unit, integration, security, E2E, load, and synthetic fixtures.
+├── package.json      # Exact toolchain, commands, and dependency contract.
 ├── .gitignore
 └── README.md
 ```
@@ -53,6 +60,12 @@ pwsh -NoProfile -File scripts/verify-agent-readiness.ps1
 
 # Rehearse discovery, selection, and handoff from an isolated committed snapshot.
 pwsh -NoProfile -File scripts/test-agent-handoff.ps1
+
+# Run the zero-cost application, architecture, test, and production-build gate.
+corepack pnpm verify
+
+# Run only the UI/application/domain/adapter/server dependency check.
+corepack pnpm check:boundaries
 ```
 
 ## Notes

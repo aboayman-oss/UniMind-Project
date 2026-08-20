@@ -649,12 +649,12 @@ pnpm build
 
 #### WP01-T02 — Create boundaries and dependency rules
 
-- [ ] Create every directory listed in section 4.2 plus `src/lib/config`, `src/lib/db`, `src/lib/http`, `src/lib/validation`, `src/lib/feature-flags`, `src/lib/testing`, `workers/shared`, and `tests/fixtures`.
-- [ ] Add a short `README.md` inside each top-level domain directory stating its public interface, allowed dependencies, prohibited dependencies, and owner.
-- [ ] Enforce these directions: UI -> application service -> domain/adapter interface; provider adapters may depend on SDKs; domain modules may not import React, Next.js request objects, or provider SDKs.
-- [ ] Keep server-only modules under a `server` filename/folder convention and import `server-only` where accidental client bundling would expose credentials or privileged behavior.
-- [ ] Add an architectural lint/test that fails if a Client Component imports a server-only module or service-role client.
-- [ ] Place shared Zod request/response schemas next to domain contracts, not duplicated across UI and route handlers.
+- [~] Create every directory listed in section 4.2 plus `src/lib/config`, `src/lib/db`, `src/lib/http`, `src/lib/validation`, `src/lib/feature-flags`, `src/lib/testing`, `workers/shared`, and `tests/fixtures`; WP01-T02 is in progress.
+- [~] Add a short `README.md` inside each top-level domain directory stating its public interface, allowed dependencies, prohibited dependencies, and owner; executor complete, review pending.
+- [~] Enforce these directions: UI -> application service -> domain/adapter interface; provider adapters may depend on SDKs; domain modules may not import React, Next.js request objects, or provider SDKs; executor complete, review pending.
+- [~] Keep server-only modules under a `server` filename/folder convention and import `server-only` where accidental client bundling would expose credentials or privileged behavior; convention and client-import enforcement complete, implementation-specific imports remain required when privileged modules are added.
+- [~] Add an architectural lint/test that fails if a Client Component imports a server-only module or service-role client; executor complete, review pending.
+- [~] Place shared Zod request/response schemas next to domain contracts, not duplicated across UI and route handlers; locality rule documented and no request/response schema exists yet.
 
 **Pass:** a dependency-boundary test demonstrates that business rules can be executed in Vitest without booting Next.js.
 

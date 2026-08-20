@@ -23,32 +23,29 @@ if ([System.IO.Path]::GetFileName($rehearsalPath) -notlike 'unimind-agent-handof
   throw "Refusing unexpected rehearsal directory name: $rehearsalPath"
 }
 
-$snapshotEntries = @(
-  '.agents'
-  'docs'
-  'evals'
-  'evidence'
-  'planning'
-  'scripts'
-  '.editorconfig'
-  '.gitattributes'
-  '.gitignore'
-  'AGENTS.md'
-  'CONTEXT.md'
-  'README.md'
-)
+$trackedFiles = @(& git -C $projectRoot ls-files)
+if ($LASTEXITCODE -ne 0) {
+  throw "Unable to enumerate the committed snapshot with git ls-files."
+}
+if ($trackedFiles.Count -eq 0) {
+  throw 'Committed snapshot contains no tracked files.'
+}
 
 try {
   [void](New-Item -ItemType Directory -Path $rehearsalPath)
 
-  foreach ($relativePath in $snapshotEntries) {
+  foreach ($relativePath in $trackedFiles) {
     $sourcePath = Join-Path $projectRoot $relativePath
     if (-not (Test-Path -LiteralPath $sourcePath)) {
       throw "Rehearsal source is missing: $relativePath"
     }
 
     $destinationPath = Join-Path $rehearsalPath $relativePath
-    Copy-Item -LiteralPath $sourcePath -Destination $destinationPath -Recurse
+    $destinationDirectory = Split-Path -Parent $destinationPath
+    if (-not (Test-Path -LiteralPath $destinationDirectory)) {
+      [void](New-Item -ItemType Directory -Path $destinationDirectory -Force)
+    }
+    Copy-Item -LiteralPath $sourcePath -Destination $destinationPath
   }
 
   $gitInitOutput = @(& git -C $rehearsalPath init --quiet 2>&1)

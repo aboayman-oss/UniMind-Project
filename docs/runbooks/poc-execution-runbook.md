@@ -660,14 +660,14 @@ pnpm build
 
 #### WP01-T03 — Create and validate the environment contract
 
-- [~] Create `.env.example` with names and safe comments only; values are blank or clearly fake.
-- [~] Create `src/lib/config/env.server.ts` and `env.client.ts`. Parse once with Zod and fail fast with variable names but never values.
-- [~] Only the Supabase URL, publishable key, safe public release identifier, and public telemetry toggle may use `NEXT_PUBLIC_`.
-- [~] Use server-only names for database secret/service-role key, raw/processed storage credentials, queue signing secrets, and provider keys.
-- [~] Define `PROVIDER_MODE=mock` as the default and require both a provider-specific enable flag and a nonzero approved budget before a real adapter initializes.
-- [~] Add maximum message length, upload bytes, audio duration, output tokens, request timeout, provider concurrency, retry count, and quota variables with numeric bounds.
-- [~] Add a test that builds with safe CI placeholders and a test that fails on missing, malformed, or accidentally public secret variables.
-- [~] Create `.env.local` manually for local secrets and confirm it is ignored before entering any value.
+- [x] Create `.env.example` with names and safe comments only; values are blank or clearly fake.
+- [x] Create `src/lib/config/env.server.ts` and `env.client.ts`. Parse once with Zod and fail fast with variable names but never values.
+- [x] Only the Supabase URL, publishable key, safe public release identifier, and public telemetry toggle may use `NEXT_PUBLIC_`.
+- [x] Use server-only names for database secret/service-role key, raw/processed storage credentials, queue signing secrets, and provider keys.
+- [x] Define `PROVIDER_MODE=mock` as the default and require both a provider-specific enable flag and a nonzero approved budget before a real adapter initializes.
+- [x] Add maximum message length, upload bytes, audio duration, output tokens, request timeout, provider concurrency, retry count, and quota variables with numeric bounds.
+- [x] Add a test that builds with safe CI placeholders and a test that fails on missing, malformed, or accidentally public secret variables.
+- [x] Create `.env.local` manually for local secrets and confirm it is ignored before entering any value.
 
 **Pass:** `pnpm test:unit -- env` proves valid, missing, malformed, and forbidden-public cases; `pnpm build` succeeds with safe CI placeholders.
 

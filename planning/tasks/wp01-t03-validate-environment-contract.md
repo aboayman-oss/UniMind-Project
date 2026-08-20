@@ -2,17 +2,17 @@
 
 **Task ID:** WP01-T03
 
-**Status:** [~]
+**Status:** [x]
 
 **Outcome:** Agents and runtime adapters receive one validated public/server configuration contract that fails safely, defaults to mock providers, and cannot expose secret-class variables to browser code.
 
 **Owner:** Codex `/root`
 
-**Reviewer:** Codex `/root` (ordinary task; pending)
+**Reviewer:** Codex `/root` — PASS (ordinary task)
 
 **Branch:** main (no delivery branch requested)
 
-**Updated (UTC):** 2026-08-20T17:24:30Z
+**Updated (UTC):** 2026-08-20T17:27:23Z
 
 ## Execution contract
 
@@ -26,7 +26,7 @@
 
 **Pass:** Valid mock configuration parses once; missing, malformed, out-of-range, accidentally public-secret, and unauthorized real-provider configurations fail with variable names but no values; a production build passes with synthetic CI placeholders.
 
-**Evidence:** `evidence/wp01-foundation/2026-08-20_environment-contract_local_<short-sha>.md`
+**Evidence:** `evidence/wp01-foundation/2026-08-20_environment-contract_local_3d1228e.md`
 
 **Rollback:** Revert the WP01-T03 commits; no secret file, provider, database, deployment, or external state is changed.
 
@@ -38,7 +38,7 @@
 - [x] Implement reusable Zod validation plus server/client accessors.
 - [x] Enforce mock-by-default provider authorization and numeric safety bounds.
 - [x] Prove failure behavior, safe CI build behavior, and local-secret ignore behavior.
-- [~] Run the full repository gate, assemble evidence, and complete ordinary review.
+- [x] Run the full repository gate, assemble evidence, and complete ordinary review.
 
 ## Handoff
 
@@ -46,8 +46,8 @@
 
 **Commands:** Focused environment suite passes 9 tests; `pnpm test:unit -- env` passes 23 tests; `pnpm build` passes with synthetic variables; `pnpm verify` passes formatting, lint, strict types, boundaries, 23 tests, and the safe production build. `.env.local` ignore check exits 0. The first dependency refresh used the wrong global pnpm 11 and stopped on its release-age policy; the pinned pnpm 10.34.5 restored the unchanged reviewed lock before adding only `server-only@0.0.1`. The first focused test/typecheck runs exposed and then verified narrow default/typing fixes.
 
-**Remaining:** Candidate commit, sanitized evidence, readiness/handoff rehearsal, and ordinary-task review.
+**Remaining:** NONE for WP01-T03.
 
-**Next safe action:** Commit the reviewed candidate, run fresh-agent checks against that SHA, and write the sanitized gate report.
+**Next safe action:** Claim WP01-T04 and start the versioned local Supabase foundation after confirming Docker and the pinned CLI are healthy.
 
-**Reviewer action:** Confirm classification, fail-closed provider authorization, non-disclosing errors, safe-placeholder build, and ignored local secrets after candidate commit.
+**Reviewer action:** PASS — classification, fail-closed provider authorization, non-disclosing errors, synthetic production build, ignored local secrets, candidate diff, and fresh-agent handoff reviewed.

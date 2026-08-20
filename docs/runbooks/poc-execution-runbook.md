@@ -729,7 +729,7 @@ git diff --exit-code -- src/types/database.generated.ts
 #### WP01-T07 — Create the test layers
 
 - [ ] Unit tests cover pure business rules and validators.
-- [ ] Integration tests run against the reset local PostgreSQL/Supabase stack and mock providers.
+- [?] Integration tests run against the reset local PostgreSQL/Supabase stack and mock providers. Blocked on WP01-T04; see `planning/tasks/wp01-t07-create-test-layers.md`.
 - [ ] Security tests assume multiple users, cohorts, roles, and source states and assert allowed plus forbidden operations.
 - [ ] End-to-end tests use Playwright with isolated synthetic accounts and deterministic data.
 - [ ] Evaluation tests consume versioned JSONL and emit machine-readable plus Markdown reports.
@@ -745,7 +745,7 @@ git diff --exit-code -- src/types/database.generated.ts
 - [ ] Pin action revisions to immutable commit SHAs or an approved dependency policy.
 - [ ] Use `pnpm install --frozen-lockfile`.
 - [ ] Cache only safe package/build data; never cache `.env`, Supabase credentials, test-user tokens, or private fixtures.
-- [ ] Start the local Supabase stack, reset migrations, seed synthetic data, run database/security tests, generate types, and fail on a type diff.
+- [?] Start the local Supabase stack, reset migrations, seed synthetic data, run database/security tests, generate types, and fail on a type diff. Blocked on WP01-T04/T07; see `planning/tasks/wp01-t08-create-ci.md`.
 - [ ] Run format check, lint, type check, unit/integration/security tests, production build, and a small Playwright smoke suite.
 - [ ] Upload sanitized test/evaluation reports even when a test fails.
 - [ ] Add a secret scan and dependency review appropriate to the repository.
@@ -756,7 +756,7 @@ git diff --exit-code -- src/types/database.generated.ts
 #### WP01-T09 — Provision isolated environments
 
 - [ ] Create an environment matrix containing `local`, `preview`, and `beta`; list database project, storage namespaces, worker/queue namespace, callback base URL, secret scope, data classification, and owner.
-- [ ] Use separate Supabase projects for preview and beta. A branch schema inside beta is not sufficient isolation for private pilot data.
+- [?] Use separate Supabase projects for preview and beta. A branch schema inside beta is not sufficient isolation for private pilot data. Blocked on the local database/Auth/CI gates and external project provisioning; see `planning/tasks/wp01-t09-provision-isolated-environments.md`.
 - [ ] Use synthetic seed data in preview and rights-approved pilot data only in beta.
 - [ ] Configure unique callback signing secrets and provider budget scopes per environment.
 - [ ] Make preview deployment automatic from pull requests and beta deployment an approved promotion of an already-tested commit.

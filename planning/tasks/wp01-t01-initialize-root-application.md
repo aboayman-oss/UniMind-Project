@@ -2,13 +2,13 @@
 
 **Task ID:** WP01-T01
 
-**Status:** [~]
+**Status:** [x]
 
 **Outcome:** A clean checkout installs an exact Node 24/pnpm 10 dependency graph and passes lint, strict type checking, and a production Next.js build.
 
 **Owner:** Codex
 
-**Reviewer:** Codex `/root` — ORDINARY-TASK REVIEW IN PROGRESS
+**Reviewer:** Codex `/root` — PASS (ordinary task)
 
 **Branch:** main (no delivery branch requested)
 
@@ -26,7 +26,7 @@
 
 **Pass:** Every required command exits 0 under Node 24.19.0 and pnpm 10.34.5; dependencies contain exact versions; `.next` is ignored; a clean frozen install reproduces the lockfile.
 
-**Evidence:** `evidence/wp01-foundation/2026-08-20_runtime-foundation_local_<short-sha>.md`
+**Evidence:** `evidence/wp01-foundation/2026-08-20_runtime-foundation_local_3c98584.md`
 
 **Rollback:** Revert the WP01-T01 commit; no database, provider, deployment, or external state is changed.
 
@@ -39,7 +39,7 @@
 - [x] Resolve the package graph without unsupported peer combinations and generate the lockfile.
 - [x] Run formatting, lint, strict type checking, and production build checks under Node 24.19.0.
 - [x] Reproduce the graph from the frozen lockfile in an isolated clean copy.
-- [~] Assemble sanitized evidence and complete the ordinary-task review.
+- [x] Assemble sanitized evidence and complete the ordinary-task review.
 
 ## Handoff
 
@@ -47,8 +47,8 @@
 
 **Commands:** Under Node 24.19.0 and pnpm 10.34.5, frozen install and `pnpm verify` passed. A second install from only the lockfile/config/source files in a new temporary directory also passed `pnpm verify`. The initial latest TypeScript 7/ESLint 10 peer mismatch was corrected to compatible exact releases before evidence.
 
-**Remaining:** Candidate commit, commit-specific evidence, diff/secret review, and ordinary-task reviewer disposition.
+**Remaining:** NONE for WP01-T01.
 
-**Next safe action:** Commit the review candidate, create commit-specific evidence, and rerun the handoff checks.
+**Next safe action:** Claim WP01-T02 and create the repository boundary map plus enforcement test.
 
-**Reviewer action:** Confirm exact compatible pins, inspect the minimal Server Component foundation, review the clean-snapshot proof, and rerun the verification commands before marking the task complete.
+**Reviewer action:** PASS — exact pins, runtime selection, Server Component boundaries, clean-snapshot proof, diff hygiene, and zero-cost constraints reviewed.

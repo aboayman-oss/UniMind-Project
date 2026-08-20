@@ -603,39 +603,39 @@ Define the reproducible 100-student scenario with exact durations and arrival ra
 
 The repository already contains planning documents, so do not run a scaffold command that expects an empty directory. Initialize the application in place.
 
-- [~] Confirm work package 0 passed and the working tree contains no unknown edits; executor verification complete, gate review pending.
-- [~] Record the latest supported Node 24 LTS patch from the official release page in `.nvmrc` and `package.json#engines.node`; pinned to 24.19.0, gate review pending.
-- [~] Initialize `package.json` only if it does not exist; initialized in place, gate review pending:
+- [x] Confirm work package 0 passed and the working tree contains no unknown edits; reviewed in WP01-T01 evidence.
+- [x] Record the latest supported Node 24 LTS patch from the official release page in `.nvmrc` and `package.json#engines.node`; pinned to 24.19.0.
+- [x] Initialize `package.json` only if it does not exist; initialized in place:
 
 ```powershell
 pnpm init
 ```
 
-- [~] Pin the package manager using Corepack, then confirm `packageManager` contains an exact version rather than a range; pinned to pnpm 10.34.5, gate review pending:
+- [x] Pin the package manager using Corepack, then confirm `packageManager` contains an exact version rather than a range; pinned to pnpm 10.34.5:
 
 ```powershell
 corepack use pnpm@latest-10
 pnpm --version
 ```
 
-- [~] Install the application runtime dependencies and commit the lockfile; exact compatible versions installed, gate review pending:
+- [x] Install the application runtime dependencies and commit the lockfile; exact compatible versions installed:
 
 ```powershell
 pnpm add next@latest react@latest react-dom@latest zod @supabase/supabase-js @supabase/ssr
 pnpm add -D typescript @types/node @types/react @types/react-dom eslint eslint-config-next prettier prettier-plugin-tailwindcss vitest @vitest/coverage-v8 playwright tsx supabase
 ```
 
-- [~] After installation, replace `latest` resolution with the exact versions written to `package.json`; every direct dependency is exact, gate review pending.
-- [~] Add `dev`, `build`, `start`, `lint`, `typecheck`, `format`, `format:check`, `test:unit`, `test:integration`, `test:security`, `test:e2e`, `test:eval`, `test:load`, `db:start`, `db:stop`, `db:reset`, `db:types`, `db:types:check`, and `verify` scripts; gate review pending.
-- [~] Create strict `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `.prettierrc.json`, `.prettierignore`, and `next-env.d.ts` using current framework conventions; gate review pending.
-- [~] Set `typescript.strict = true`; build and lint errors remain fatal, gate review pending.
-- [~] Add a minimal `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/loading.tsx`, `src/app/not-found.tsx`, `src/app/global-error.tsx`, and `src/app/globals.css`; gate review pending.
-- [~] Default pages/layouts to Server Components. Add `'use client'` only at an interaction boundary and keep serializable props across that boundary; gate review pending.
-- [~] Make `error.tsx`/`global-error.tsx` Client Components; the current global boundary is a Client Component with its own `<html>` and `<body>`, gate review pending.
-- [~] Treat dynamic `params`, `searchParams`, `cookies()`, and `headers()` as asynchronous under current Next.js conventions and await them; no dynamic consumer exists yet, gate review pending.
-- [~] Keep API `route.ts` files under distinct API segments; no route handler exists yet, gate review pending.
-- [~] Call `redirect`, `notFound`, `forbidden`, and `unauthorized` outside ordinary `try/catch`, or rethrow Next.js navigation errors correctly; no navigation call exists yet, gate review pending.
-- [~] Use the Node.js runtime for route handlers unless a task contains an explicit Edge compatibility test; no Edge runtime is configured, gate review pending.
+- [x] After installation, replace `latest` resolution with the exact versions written to `package.json`; every direct dependency is exact.
+- [x] Add `dev`, `build`, `start`, `lint`, `typecheck`, `format`, `format:check`, `test:unit`, `test:integration`, `test:security`, `test:e2e`, `test:eval`, `test:load`, `db:start`, `db:stop`, `db:reset`, `db:types`, `db:types:check`, and `verify` scripts.
+- [x] Create strict `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `.prettierrc.json`, `.prettierignore`, and `next-env.d.ts` using current framework conventions.
+- [x] Set `typescript.strict = true`; build and lint errors remain fatal.
+- [x] Add a minimal `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/loading.tsx`, `src/app/not-found.tsx`, `src/app/global-error.tsx`, and `src/app/globals.css`.
+- [x] Default pages/layouts to Server Components. Add `'use client'` only at an interaction boundary and keep serializable props across that boundary.
+- [x] Make `error.tsx`/`global-error.tsx` Client Components; both boundaries are Client Components and the global boundary owns `<html>` and `<body>`.
+- [x] Treat dynamic `params`, `searchParams`, `cookies()`, and `headers()` as asynchronous under current Next.js conventions and await them; no dynamic consumer exists yet.
+- [x] Keep API `route.ts` files under distinct API segments; no route handler exists yet.
+- [x] Call `redirect`, `notFound`, `forbidden`, and `unauthorized` outside ordinary `try/catch`, or rethrow Next.js navigation errors correctly; no navigation call exists yet.
+- [x] Use the Node.js runtime for route handlers unless a task contains an explicit Edge compatibility test; no Edge runtime is configured.
 
 **Verify:**
 

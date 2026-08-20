@@ -8,6 +8,7 @@ This repository contains the source-of-truth plan, executable delivery runbook, 
 - [Execution runbook](docs/runbooks/poc-execution-runbook.md) — tutorial-style implementation checklist, verification gates, rollback guidance, and delivery sequence.
 - [Agent instructions](AGENTS.md) — always-on repository rules for Codex and compatible coding agents.
 - [Agent workflow](docs/agents/agent-workflow.md) — deterministic path for selecting, executing, verifying, and handing off work.
+- [Contributing and operation tutorial](CONTRIBUTING.md) — workstation setup, daily commands, migrations, verification, troubleshooting, and handoff for humans and agents.
 - [Domain context](CONTEXT.md) — shared UniMind vocabulary and relationships for discussion, code, tests, and decisions.
 - [Product context](PRODUCT.md) — compact confirmed product truth for implementation and UI workflows.
 - [Module boundaries](docs/agents/module-boundaries.md) — file naming, dependency directions, ownership, and the automated architecture check.
@@ -39,6 +40,7 @@ This repository contains the source-of-truth plan, executable delivery runbook, 
 ├── supabase/         # Versioned local database configuration and migrations.
 ├── tests/            # Unit, integration, security, E2E, load, and synthetic fixtures.
 ├── package.json      # Exact toolchain, commands, and dependency contract.
+├── CONTRIBUTING.md   # Human/agent setup, operation, troubleshooting, and handoff.
 ├── .gitignore
 └── README.md
 ```

@@ -1,0 +1,268 @@
+# Contributing to UniMind
+
+This is the operating tutorial for both human contributors and coding agents. Use repository state—not chat history—as the handoff authority.
+
+## 1. Read and select before editing
+
+From the repository root:
+
+```powershell
+git status --short --branch
+pwsh -NoProfile -File scripts/show-work-state.ps1
+```
+
+Then read, in order:
+
+1. `AGENTS.md` for non-negotiable repository rules.
+2. `README.md` for the repository map.
+3. `docs/agents/agent-workflow.md` for selection, execution, verification, and handoff.
+4. The selected task in `docs/runbooks/poc-execution-runbook.md`.
+5. Its record in `planning/tasks/`, or create one from `docs/templates/task-record.md` before editing.
+6. Only the relevant master-plan, domain, decision, policy, or design section triggered by the task.
+
+Never cross a dependency because a later task looks easier. When a human or machine prerequisite blocks a task, record the blocker and its downstream effects, then rerun the selector.
+
+## 2. Workstation setup
+
+Required tools:
+
+- Git.
+- PowerShell 7 (`pwsh`).
+- Corepack. The repository pins Node 24.19.0 and pnpm 10.34.5; invoke pnpm through Corepack so a global pnpm cannot override the contract.
+- Docker Desktop with a healthy Linux-container engine for local Supabase tasks. On Windows, hardware virtualization and WSL2 must be enabled first.
+
+Check the machine without changing it:
+
+```powershell
+git --version
+pwsh --version
+corepack pnpm --version
+corepack pnpm supabase --version
+docker version
+```
+
+Expected repository versions are also recorded in `.nvmrc`, `package.json`, and `pnpm-lock.yaml`. If the Docker command is missing or its server is unhealthy, do not start database/Auth/integration work; run the work-state command and follow the recorded WP01-T04 prerequisite.
+
+## 3. Clone and install
+
+```powershell
+git clone https://github.com/aboayman-oss/UniMind-Project.git
+Set-Location UniMind-Project
+corepack pnpm install --frozen-lockfile
+pwsh -NoProfile -File scripts/verify-agent-readiness.ps1
+```
+
+Do not replace the committed lockfile, relax engine checks, or use an unpinned global package manager to “fix” installation. If installation fails, first compare `corepack pnpm --version` with `package.json#packageManager`.
+
+## 4. Configure local environment safely
+
+Confirm the local file is ignored before creating or editing it:
+
+```powershell
+git check-ignore --no-index --verbose .env.local
+if (-not (Test-Path -LiteralPath .env.local)) {
+  Copy-Item -LiteralPath .env.example -Destination .env.local
+}
+git status --short
+```
+
+Rules:
+
+- `.env.example` contains only blank or clearly synthetic examples and is committed.
+- `.env.local` is ignored and is the only normal local destination for credentials.
+- Only the four documented `NEXT_PUBLIC_` values are browser-safe. Never add a public secret-shaped variable.
+- Keep `PROVIDER_MODE=mock`, every provider flag false, and the approved provider budget zero unless all documented live gates have approved evidence.
+- Do not paste environment values into chat, logs, issues, evidence, or command-line arguments.
+- Standalone scripts do not automatically load `.env.local`; use a repository-provided wrapper instead of inventing a secret-bearing shell command.
+
+The application fails with variable names—not values—when configuration is missing or malformed. Compare names with `.env.example`; never print the suspect value while debugging.
+
+## 5. Current safe loop
+
+The zero-cost application gate works without Docker or provider credentials:
+
+```powershell
+corepack pnpm verify
+```
+
+`verify` formats nothing, makes no paid/provider call, runs the complete unit and architecture checks, and builds with synthetic CI configuration.
+
+The database-backed daily loop below becomes executable only after `scripts/show-work-state.ps1` reports WP01-T04 complete:
+
+```powershell
+corepack pnpm install --frozen-lockfile
+corepack pnpm db:start
+corepack pnpm db:reset
+corepack pnpm dev
+```
+
+Keep the development server in its own terminal. Do not expose local Supabase or the Next.js development server to an external network.
+
+## 6. End-of-session loop
+
+Stop any development server, then run:
+
+```powershell
+corepack pnpm verify
+git diff --check
+git diff --stat
+git status --short
+corepack pnpm db:stop
+```
+
+`db:stop` is required only when the local stack was started. Before handoff, inspect the full diff, scan changed files for credentials/private data, update the task record, and link sanitized evidence to the candidate commit.
+
+## 7. Command reference
+
+Duration classes are workstation estimates: **instant** is normally under 10 seconds, **short** under one minute, **medium** one to five minutes, and **long** more than five minutes. CI and a cold install may be slower.
+
+| Command                              | Purpose                                                             | Paid/external calls                                                     | Required services                                        | Duration             |
+| ------------------------------------ | ------------------------------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------- | -------------------- |
+| `scripts/show-work-state.ps1`        | Select the next executable task and list blockers                   | None                                                                    | None                                                     | Instant              |
+| `scripts/verify-agent-readiness.ps1` | Check entry points, links, names, decisions, and task records       | None                                                                    | None                                                     | Instant              |
+| `scripts/test-agent-handoff.ps1`     | Rehearse discovery from an isolated committed snapshot              | None                                                                    | Git                                                      | Short                |
+| `pnpm install --frozen-lockfile`     | Reproduce the exact dependency graph                                | Package-registry download only when cache is cold; never paid providers | Network when cache is cold                               | Medium               |
+| `pnpm dev`                           | Run the Next.js development server                                  | Mocks only by default                                                   | Valid local environment; later flows need local Supabase | Long-running         |
+| `pnpm start`                         | Serve an already-created production build                           | None                                                                    | Valid environment and `.next` build output               | Long-running         |
+| `pnpm build`                         | Build with the caller's validated environment                       | None                                                                    | Valid environment                                        | Short                |
+| `pnpm test:env-build`                | Build with committed synthetic CI placeholders                      | None                                                                    | None                                                     | Short                |
+| `pnpm lint`                          | Run fatal static checks                                             | None                                                                    | None                                                     | Short                |
+| `pnpm typecheck`                     | Run strict TypeScript without emit                                  | None                                                                    | None                                                     | Short                |
+| `pnpm format:check`                  | Check formatting without rewriting                                  | None                                                                    | None                                                     | Instant              |
+| `pnpm format`                        | Rewrite supported files to repository format                        | None                                                                    | None                                                     | Instant              |
+| `pnpm check:boundaries`              | Enforce UI/application/domain/adapter/server import directions      | None                                                                    | None                                                     | Instant              |
+| `pnpm test:unit`                     | Run pure rules, configuration, and deterministic provider contracts | None                                                                    | None                                                     | Short                |
+| `pnpm test:integration`              | Run local service/database integration tests                        | None                                                                    | Reset local Supabase after WP01-T04/T07                  | Medium               |
+| `pnpm test:security`                 | Run grants/RLS/scope/secret tests                                   | None                                                                    | Reset local Supabase after WP01-T04/T07                  | Medium               |
+| `pnpm test:e2e`                      | Run browser journeys                                                | Mocks unless the suite name explicitly says approved live               | App plus reset synthetic local stack                     | Medium               |
+| `pnpm test:eval`                     | Run frozen quality fixtures and reports                             | Mocks by default; a live suite must say `live-approved`                 | Versioned fixtures                                       | Medium               |
+| `pnpm test:load`                     | Run the frozen load profile                                         | Never beta by default; no paid call in ordinary command                 | Explicit safe target                                     | Long                 |
+| `pnpm db:start`                      | Start local Supabase                                                | None                                                                    | Healthy Docker                                           | Medium on first pull |
+| `pnpm db:stop`                       | Stop local Supabase without deleting versioned files                | None                                                                    | Docker/local stack                                       | Short                |
+| `pnpm db:reset`                      | Recreate schema and synthetic seed from version control             | None                                                                    | Healthy local Supabase                                   | Short                |
+| `pnpm db:types`                      | Generate TypeScript from the local public schema                    | None                                                                    | Reset local Supabase                                     | Short                |
+| `pnpm db:types:check`                | Reject a stale committed generated-type file                        | None                                                                    | Types generated first                                    | Instant              |
+| `pnpm verify`                        | Run the complete zero-paid local merge gate                         | None                                                                    | None for the currently implemented gate                  | Short                |
+
+In shell examples, invoke package commands as `corepack pnpm ...`. The shorter `pnpm ...` spelling in tables and the execution runbook refers to the same pinned project command.
+
+## 8. Make a reviewable change
+
+1. Preserve unrelated changes shown by `git status`.
+2. Select exactly one task and fill its task record.
+3. When a delivery branch is requested, use `wpNN/short-outcome`, for example:
+
+```powershell
+git switch -c wp01/provider-mocks
+```
+
+4. Implement the smallest observable end-to-end result. Keep business rules out of React, route handlers, provider SDKs, and workflow tools.
+5. Run the narrowest focused check after each meaningful change.
+6. Run the end-of-session loop and inspect the full diff.
+7. Commit the coherent candidate with an outcome-oriented message.
+8. Create sanitized evidence named `YYYY-MM-DD_<gate>_<environment>_<short-sha>.md` in the correct `evidence/wpNN-*` directory.
+9. Obtain the reviewer required by the runbook. RLS, grants, rights, raw deletion, budgets/kill switches, release/unlock, and beta go-live keep their two-person rule.
+
+Do not push, open a pull request, merge, deploy, unlock, or enable a live provider unless the user explicitly authorizes that external action.
+
+## 9. Database migration workflow
+
+Use this only after WP01-T04 passes and the local stack is healthy:
+
+```powershell
+corepack pnpm supabase migration new descriptive_outcome
+corepack pnpm db:reset
+corepack pnpm db:reset
+corepack pnpm db:types
+corepack pnpm db:types:check
+```
+
+Edit only the CLI-created migration filename. Never invent a migration timestamp, repair a shared database in a dashboard, rewrite applied history, or add real seed data. RLS, grants, rights, deletion, release, and usage migrations require their documented independent review.
+
+## 10. Pull request handoff
+
+A review request must contain:
+
+- Task ID and observable outcome.
+- Candidate commit and branch.
+- Exact changed files and why they changed.
+- Exact commands, exit codes, and relevant test counts.
+- Evidence path and any opaque restricted-evidence link.
+- Failures encountered and how they were resolved.
+- Anything not run and the exact blocker.
+- Rollback/disable action.
+- One next safe action and the reviewer action still required.
+
+The committed task record is authoritative. A screenshot, chat summary, or green build without the required database/security/evidence gate is not completion proof.
+
+## 11. Troubleshooting
+
+### Wrong Node or pnpm
+
+Run `corepack pnpm --version` and compare it with `package.json#packageManager`. Use `corepack pnpm`, not a global `pnpm`. Do not regenerate the lockfile merely because a different package manager rejects it.
+
+### Docker is stopped, missing, or virtualization is disabled
+
+Run `docker version`. If the executable is missing, the server is unhealthy, or Windows reports virtualization disabled, stop database work and follow `planning/tasks/wp01-t04-start-local-supabase.md`. BIOS/UEFI changes, WSL2 installation, Docker's license, administrator prompts, and reboots are human-controlled setup steps.
+
+### A port is occupied
+
+Use the failing command's port and inspect it without killing anything:
+
+```powershell
+$portNumber = 54321
+Get-NetTCPConnection -LocalPort $portNumber -ErrorAction SilentlyContinue
+```
+
+Identify the owning process before changing configuration. Do not terminate an unknown process automatically. Prefer the versioned Supabase configuration once WP01-T04 defines it.
+
+### Generated database types are stale
+
+Reset the local database, regenerate types, and inspect the diff:
+
+```powershell
+corepack pnpm db:reset
+corepack pnpm db:types
+git diff -- src/types/database.generated.ts
+```
+
+If the diff is expected, include it with the migration. If no migration explains it, stop and diagnose drift.
+
+### Migration state differs from version control
+
+```powershell
+corepack pnpm supabase migration list --local
+corepack pnpm db:reset
+```
+
+Fix the first versioned migration failure. Never patch the local or shared dashboard as the repair. For an already-shared migration, add a forward repair migration.
+
+### Environment validation fails
+
+Use the variable names in the error to compare `.env.local` with `.env.example`. Do not print, echo, log, or paste values. Confirm unknown `NEXT_PUBLIC_` names are removed and mock mode remains enabled.
+
+### A local token or credential leaked
+
+1. Stop the command or release action that exposed it.
+2. Revoke or rotate the value at its authoritative source; deleting the local text is not sufficient.
+3. Replace it only in the ignored `.env.local` or approved external secret store.
+4. Search the candidate diff, logs, evidence, and Git history for the value without printing it.
+5. If it entered a commit or external system, record a security incident and obtain security-owner review before continuing.
+
+### A provider call appears during ordinary verification
+
+Stop immediately. `pnpm verify` must be mock-only and zero-cost. Keep real flags false and budgets zero, preserve sanitized diagnostics, and treat any attempted network call as a release blocker.
+
+## 12. Final self-check
+
+Before handing off, answer yes from repository evidence:
+
+- Is the task selected and dependency-valid?
+- Are all fixtures synthetic and all secrets absent?
+- Did the focused checks and every currently applicable full gate pass?
+- Are unrun checks and blockers explicit?
+- Did you inspect `git diff --check`, `git diff --stat`, the full diff, and `git status --short`?
+- Is the task record enough for a fresh agent to continue without this conversation?
+- Is the next action safe, exact, and owned?
+
+If any answer depends on personal memory, convert it into code, configuration, this tutorial, a runbook, or reviewed evidence before claiming completion.

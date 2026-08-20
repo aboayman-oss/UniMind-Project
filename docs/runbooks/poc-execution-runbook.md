@@ -768,9 +768,9 @@ git diff --exit-code -- src/types/database.generated.ts
 
 #### WP01-T10 — Write the repository operation tutorial
 
-- [ ] Add `CONTRIBUTING.md` containing workstation setup, clone, install, local stack, environment, reset, test, branch, PR, migration, and troubleshooting instructions for human and agent executors.
-- [ ] Add a command table with purpose, paid-call behavior, required services, and expected duration class.
-- [ ] Include the normal daily loop:
+- [x] Add `CONTRIBUTING.md` containing workstation setup, clone, install, local stack, environment, reset, test, branch, PR, migration, and troubleshooting instructions for human and agent executors.
+- [x] Add a command table with purpose, paid-call behavior, required services, and expected duration class.
+- [x] Include the normal daily loop:
 
 ```powershell
 pnpm install --frozen-lockfile
@@ -779,7 +779,7 @@ pnpm db:reset
 pnpm dev
 ```
 
-- [ ] Include the end-of-session loop:
+- [x] Include the end-of-session loop:
 
 ```powershell
 pnpm verify
@@ -788,8 +788,8 @@ git status --short
 pnpm db:stop
 ```
 
-- [ ] Include recovery for occupied ports, stopped Docker, stale generated types, migration drift, invalid env, and a leaked local token.
-- [ ] Have a fresh agent follow `CONTRIBUTING.md` on a clean clone without chat history or verbal help; have the reviewer record every ambiguity.
+- [x] Include recovery for occupied ports, stopped Docker, stale generated types, migration drift, invalid env, and a leaked local token.
+- [?] Have a fresh agent follow `CONTRIBUTING.md` on a clean clone without chat history or verbal help; have the reviewer record every ambiguity. Structural rehearsal is ready, but the database/app journey is blocked on WP01-T04; see `planning/tasks/wp01-t10-write-operation-tutorial.md`.
 
 **Pass:** the clean-clone rehearsal reaches the app, local database, tests, and build using repository instructions alone, and the fresh agent produces a complete task handoff.
 

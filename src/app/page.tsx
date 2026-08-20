@@ -1,4 +1,8 @@
+import { getServerEnvironment } from "@/lib/config/env.server";
+
 export default function HomePage() {
+  const environment = getServerEnvironment();
+
   return (
     <main>
       <h1>UniMind</h1>
@@ -19,7 +23,15 @@ export default function HomePage() {
           </div>
           <div>
             <dt>Providers</dt>
-            <dd>Disabled until approved</dd>
+            <dd>
+              {environment.PROVIDER_MODE === "mock"
+                ? "Mock only"
+                : "Approved real mode"}
+            </dd>
+          </div>
+          <div>
+            <dt>Release</dt>
+            <dd>{environment.NEXT_PUBLIC_RELEASE_ID}</dd>
           </div>
         </dl>
       </section>
